@@ -1,8 +1,8 @@
 ---
-title: "欢迎使用 ink-blog"
+title: "欢迎使用 Jiumo_blog"
 date: 2026-09-29
 tags: ["公告", "教程"]
-summary: "这是 ink-blog 的第一篇示例文章，介绍如何在管理后台写作、发布与管理文章。"
+summary: "这是 Jiumo_blog 的第一篇示例文章，介绍如何在管理后台写作、发布与管理文章。"
 ---
 
 
@@ -12,7 +12,7 @@ summary: "这是 ink-blog 的第一篇示例文章，介绍如何在管理后台
 
 ## 这是什么
 
-**ink-blog** 是一个纯静态博客，没有服务器、没有数据库：
+**Jiumo_blog** 是一个纯静态博客，没有服务器、没有数据库：
 
 - 文章就是仓库 `posts/` 目录下的 Markdown 文件；
 - 打开 `/admin` 管理后台，用 GitHub Token 登录后即可在线写作；
@@ -66,3 +66,6 @@ int main(void) {
 3. 如需修改博客名称，编辑 `assets/js/config.js` 中的 `siteTitle`。
 
 祝写作愉快。
+
+
+<!-- 保存权限测试 -->
