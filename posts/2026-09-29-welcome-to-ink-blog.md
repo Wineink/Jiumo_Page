@@ -6,6 +6,7 @@ summary: "这是 ink-blog 的第一篇示例文章，介绍如何在管理后台
 ---
 
 
+
 **线上博客：** [点击访问](https://wineink.github.io/Jiumo_blog/)
 **线上后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
 
@@ -65,6 +66,3 @@ int main(void) {
 3. 如需修改博客名称，编辑 `assets/js/config.js` 中的 `siteTitle`。
 
 祝写作愉快。
-
-
-<!-- 保存权限测试 -->
