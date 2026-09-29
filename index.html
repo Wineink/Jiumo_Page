@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>墨迹博客</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <div>
+        <h1 class="site-title"><a href="index.html" id="siteTitle">墨迹博客</a></h1>
+        <p class="site-subtitle" id="siteDesc"></p>
+      </div>
+      <nav class="site-nav">
+        <a href="admin/index.html">管理后台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <input type="text" class="search-box" id="searchBox" placeholder="搜索标题、标签或正文…">
+    <div class="post-list" id="postList">
+      <div class="state-box"><span class="spinner"></span>正在加载文章…</div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">由 ink-blog 驱动 · 托管于 GitHub Pages</div>
+  </footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/vendor/marked.min.js"></script>
+  <script src="assets/js/blog.js"></script>
+</body>
+</html>

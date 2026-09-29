@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 墨迹博客</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <!-- 登录视图 -->
+  <div class="admin-wrap" id="loginView">
+    <div class="panel" style="margin-top:48px;">
+      <h2>管理后台登录</h2>
+      <form id="loginForm">
+        <div class="form-grid">
+          <div class="form-row">
+            <label>GitHub 用户名</label>
+            <input type="text" id="loginOwner" placeholder="例如 octocat" required>
+          </div>
+          <div class="form-row">
+            <label>仓库名</label>
+            <input type="text" id="loginRepo" value="ink-blog" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>分支</label>
+          <input type="text" id="loginBranch" value="main" required>
+        </div>
+        <div class="form-row">
+          <label>Personal Access Token
+            <span class="hint">仅保存在本浏览器 localStorage，只发送给 api.github.com</span>
+          </label>
+          <input type="password" id="loginToken" placeholder="github_pat_..." required>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="loginBtn">登录并验证</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>如何生成 Token（Fine-grained，约 1 分钟）</h2>
+      <ol style="font-size:14px;color:#3a424b;padding-left:1.4em;line-height:1.9;">
+        <li>打开
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
+            github.com/settings/personal-access-tokens/new</a>
+        </li>
+        <li><strong>Repository access</strong> 选择 <em>Only select repositories</em>，勾选博客仓库</li>
+        <li><strong>Permissions → Repository permissions → Contents</strong> 设为 <em>Read and write</em></li>
+        <li>生成后复制 <code>github_pat_</code> 开头的 Token，粘贴到上方</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 管理主视图 -->
+  <div class="admin-wrap hidden" id="adminView">
+    <div class="admin-topbar">
+      <div>
+        <h1>文章管理</h1>
+        <div class="repo-info" id="repoInfo"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnNew">+ 新建文章</button>
+        <a class="btn btn-ghost" href="../index.html">博客首页</a>
+        <button class="btn btn-ghost" id="btnSettings">设置</button>
+        <button class="btn btn-danger" id="btnLogout">登出</button>
+      </div>
+    </div>
+
+    <!-- 文章列表 -->
+    <div class="panel" id="listPanel">
+      <h2>全部文章</h2>
+      <div class="admin-list" id="adminList">
+        <div class="state-box"><span class="spinner"></span>正在加载…</div>
+      </div>
+    </div>
+
+    <!-- 编辑器 -->
+    <div class="panel hidden" id="editorPanel">
+      <div class="editor-toolbar">
+        <div class="filename-box" id="filenameBox"></div>
+        <div class="tabs">
+          <button type="button" id="tabEdit" class="active">编辑</button>
+          <button type="button" id="tabPreview">预览</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>标题</label>
+        <input type="text" id="editTitle" placeholder="请输入文章标题">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>日期</label>
+          <input type="text" id="editDate">
+        </div>
+        <div class="form-row">
+          <label>标签<span class="hint">多个标签用英文逗号分隔</span></label>
+          <input type="text" id="editTags" placeholder="随笔, 技术">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>摘要<span class="hint">留空则自动截取正文开头</span></label>
+        <input type="text" id="editSummary" placeholder="一句话概括这篇文章">
+      </div>
+
+      <div class="editor-body" id="editBodyWrap">
+        <div class="form-row" style="margin-bottom:0;">
+          <label>正文（支持 Markdown）</label>
+          <textarea id="editBody" placeholder="在这里开始写作…"></textarea>
+        </div>
+      </div>
+      <div class="preview-pane post-article hidden" id="editPreview"></div>
+
+      <div class="actions" style="margin-top:18px;">
+        <button class="btn btn-primary" id="btnSave">保存并发布</button>
+        <button class="btn btn-ghost" id="btnCancel">取消</button>
+      </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="panel hidden" id="settingsPanel">
+      <h2>仓库与登录设置</h2>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>GitHub 用户名</label>
+          <input type="text" id="setOwner">
+        </div>
+        <div class="form-row">
+          <label>仓库名</label>
+          <input type="text" id="setRepo">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>分支</label>
+        <input type="text" id="setBranch">
+      </div>
+      <div class="form-row">
+        <label>Token</label>
+        <input type="password" id="setToken">
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnSaveSettings">保存设置</button>
+        <button class="btn btn-ghost" id="btnBackFromSet">返回</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/vendor/marked.min.js"></script>
+  <script src="../assets/js/admin.js"></script>
+</body>
+</html>
