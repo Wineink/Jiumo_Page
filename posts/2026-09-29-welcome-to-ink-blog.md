@@ -1,9 +1,10 @@
 ---
-title: "欢迎使用 ink-blog"
+title: "欢迎使用 Jiumo_blog"
 date: 2026-09-29
-tags: [公告, 教程]
+tags: ["公告", "教程"]
 summary: "这是 ink-blog 的第一篇示例文章，介绍如何在管理后台写作、发布与管理文章。"
 ---
+
 
 **线上博客：** [点击访问](https://wineink.github.io/Jiumo_blog/)
 **线上后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
