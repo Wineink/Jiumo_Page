@@ -7,6 +7,9 @@ summary: "这是 ink-blog 的第一篇示例文章，介绍如何在管理后台
 
 **立即使用：** [https://wineink.github.io/pubg-bullet-drop-calculator/](https://wineink.github.io/pubg-bullet-drop-calculator/)
 
+**线上博客：** [点击访问](https://wineink.github.io/Jiumo_blog/)
+**线上后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
+
 ## 这是什么
 
 **ink-blog** 是一个纯静态博客，没有服务器、没有数据库：
