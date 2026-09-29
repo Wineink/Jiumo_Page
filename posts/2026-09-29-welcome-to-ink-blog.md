@@ -5,8 +5,6 @@ tags: [公告, 教程]
 summary: "这是 ink-blog 的第一篇示例文章，介绍如何在管理后台写作、发布与管理文章。"
 ---
 
-**立即使用：** [https://wineink.github.io/pubg-bullet-drop-calculator/](https://wineink.github.io/pubg-bullet-drop-calculator/)
-
 **线上博客：** [点击访问](https://wineink.github.io/Jiumo_blog/)
 **线上后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
 
