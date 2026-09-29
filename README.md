@@ -69,7 +69,7 @@ https://你的用户名.github.io/ink-blog/
 
 ### 4. 登录后台写文章
 
-1. 打开 `https://你的用户名.github.io/ink-blog/admin/`
+1. 打开 `https://Wineink.github.io/ink-blog/admin/`
 2. 生成 Fine-grained Token：访问
    <https://github.com/settings/personal-access-tokens/new>
    - **Repository access**：`Only select repositories`，勾选本仓库
