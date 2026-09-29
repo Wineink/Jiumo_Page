@@ -1,4 +1,4 @@
-# ink-blog
+# Jiumo_blog
 
 **在线页面：** [点击访问](https://wineink.github.io/Jiumo_blog/)
 **页面后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
@@ -13,7 +13,7 @@
 ## 目录结构
 
 ```
-ink-blog/
+Jiumo_blog/
 ├── index.html              # 博客首页
 ├── post.html               # 文章详情页
 ├── admin/
@@ -37,7 +37,7 @@ ink-blog/
 ```js
 window.SiteConfig = {
   owner: '你的用户名',   // 必改
-  repo: 'ink-blog',     // 若仓库名不同则一并修改
+  repo: 'Jiumo_blog',     // 若仓库名不同则一并修改
   branch: 'main',
   ...
 };
@@ -45,15 +45,15 @@ window.SiteConfig = {
 
 ### 2. 在 GitHub 新建仓库
 
-在 GitHub 创建一个仓库（例如 `ink-blog`，建议 Public），然后把本目录内容推送上去：
+在 GitHub 创建一个仓库（例如 `Jiumo_blog`，建议 Public），然后把本目录内容推送上去：
 
 ```bash
-cd ink-blog
+cd Jiumo_blog
 git init
 git add .
-git commit -m "init ink-blog"
+git commit -m "init Jiumo_blog"
 git branch -M main
-git remote add origin https://github.com/你的用户名/ink-blog.git
+git remote add origin https://github.com/你的用户名/Jiumo_blog.git
 git push -u origin main
 ```
 
@@ -67,12 +67,12 @@ git push -u origin main
 约 1 分钟后访问：
 
 ```
-https://你的用户名.github.io/ink-blog/
+https://你的用户名.github.io/Jiumo_blog/
 ```
 
 ### 4. 登录后台写文章
 
-1. 打开 `https://Wineink.github.io/ink-blog/admin/`
+1. 打开 `https://Wineink.github.io/Jiumo_blog/admin/`
 2. 生成 Fine-grained Token：访问
    <https://github.com/settings/personal-access-tokens/new>
    - **Repository access**：`Only select repositories`，勾选本仓库

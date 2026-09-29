@@ -41,7 +41,7 @@ summary: "这是 Jiumo_blog 的第一篇示例文章，介绍如何在管理后�
 /* 代码块示例 */
 #include <stdio.h>
 int main(void) {
-    printf("hello, ink-blog!\r\n");
+    printf("hello, Jiumo_blog!\r\n");
     return 0;
 }
 ```

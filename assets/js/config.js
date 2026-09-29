@@ -1,5 +1,5 @@
 /* ============================================================
- * ink-blog 公共配置与 GitHub API 封装
+ * Jiumo_blog 公共配置与 GitHub API 封装
  * 前台与后台共用，纯静态、零构建，直接部署到 GitHub Pages
  * ============================================================ */
 
@@ -14,8 +14,8 @@ window.SiteConfig = {
 };
 
 /* 后台设置在 localStorage 中的键名 */
-var STORE_KEY = 'ink_blog_admin';
-var DRAFT_KEY = 'ink_blog_draft';
+var STORE_KEY = 'jiumo_blog_admin';
+var DRAFT_KEY = 'jiumo_blog_draft';
 
 /* 读取配置：默认配置与后台保存的配置合并 */
 function getConfig() {
