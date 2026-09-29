@@ -1,5 +1,8 @@
 # ink-blog
 
+**在线页面：** [点击访问](https://wineink.github.io/Jiumo_blog/)
+**页面后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
+
 一个**纯静态、零构建、带管理后台**的博客，直接部署在 GitHub Pages 上。
 
 - 前台：首页文章列表、搜索、文章详情（Markdown 渲染）
