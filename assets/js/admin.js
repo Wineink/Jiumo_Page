@@ -132,6 +132,11 @@
       p.classList.toggle('hidden', p.id !== 'view-' + name);
     });
     viewTitle.textContent = VIEW_NAMES[name] || name;
+    /* 切换分类时内容区回到顶部，避免面板与顶栏错位/露出 */
+    var scroller = document.querySelector('.admin-content');
+    if (scroller) {
+      scroller.scrollTop = 0;
+    }
   }
 
   /* ----------------------------------------------------------

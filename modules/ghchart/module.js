@@ -58,20 +58,35 @@ window.JiumoModules.ghchart = {
   }
 };
 
-/* 各级贡献对应的颜色（0~4 级） */
+/* 各级贡献对应的颜色（0~4 级）
+ * classic/coral 在深色主题下自动切换为深色友好色阶（0 级贴近背景，贡献格显眼） */
 function ghChartPalette(style, customColor) {
-  var base = {
-    classic: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-    dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-    coral: ['#ebedf0', '#fdd0c4', '#fb9e8d', '#f26d51', '#d73a1e']
-  }[style] || ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
-  if (style === 'custom') {
+  var darkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+  var base;
+  if (style === 'classic') {
+    base = darkMode
+      ? ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353']
+      : ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
+  } else if (style === 'dark') {
+    base = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+  } else if (style === 'coral') {
+    base = darkMode
+      ? ['#161b22', '#3f2d28', '#5c372c', '#a94a30', '#d73a1e']
+      : ['#ebedf0', '#fdd0c4', '#fb9e8d', '#f26d51', '#d73a1e'];
+  } else if (style === 'custom') {
     var c = customColor || '#0f766e';
     if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c)) {
       c = '#0f766e';
     }
-    base = [mixColor(c, '#ffffff', 0.85), mixColor(c, '#ffffff', 0.6),
-      mixColor(c, '#ffffff', 0.35), mixColor(c, '#ffffff', 0.12), c];
+    if (darkMode) {
+      base = [mixColor(c, '#000000', 0.72), mixColor(c, '#000000', 0.5),
+        mixColor(c, '#000000', 0.28), mixColor(c, '#000000', 0.12), c];
+    } else {
+      base = [mixColor(c, '#ffffff', 0.85), mixColor(c, '#ffffff', 0.6),
+        mixColor(c, '#ffffff', 0.35), mixColor(c, '#ffffff', 0.12), c];
+    }
+  } else {
+    base = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
   }
   return base;
 }
