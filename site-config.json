@@ -1,0 +1,54 @@
+{
+  "site": {
+    "title": "墨迹博客",
+    "desc": "一个托管在 GitHub Pages 上的静态博客，在 /admin 后台写作发布"
+  },
+  "profile": {
+    "showAvatar": true,
+    "avatar": "",
+    "avatarShape": "circle",
+    "intro": "这是我的个人博客，记录生活与代码。欢迎来到 Jiumo_blog。"
+  },
+  "sidebar": {
+    "enabled": true,
+    "sticky": true,
+    "title": "关于本站",
+    "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「侧栏模块」中修改，支持 Markdown。"
+  },
+  "appearance": {
+    "theme": "dark",
+    "accent": "#0f766e",
+    "accentDark": "#14b8a6",
+    "buttonStyle": "rounded",
+    "radius": 12,
+    "fontSize": 16
+  },
+  "widgets": {
+    "backToTop": true,
+    "darkToggle": true,
+    "busuanzi": true,
+    "scrollReveal": true,
+    "particles": false,
+    "particlesPreset": "default",
+    "typing": false,
+    "typingText": [
+      "欢迎来到 Jiumo_blog",
+      "记录生活与代码"
+    ],
+    "utterances": {
+      "enabled": false,
+      "repo": "",
+      "issueTerm": "pathname",
+      "theme": "github-light"
+    },
+    "gitalk": {
+      "enabled": false,
+      "clientID": "",
+      "clientSecret": "",
+      "repo": ""
+    }
+  },
+  "animation": {
+    "speed": "normal"
+  }
+}
