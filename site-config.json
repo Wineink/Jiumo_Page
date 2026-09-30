@@ -1,7 +1,7 @@
 {
   "site": {
     "title": "酒墨的页面",
-    "desc": "线上热更新闭环OK2"
+    "desc": "一个托管在 GitHub Pages 上的静态页面，有后台管理写作发布等。"
   },
   "profile": {
     "showAvatar": true,
