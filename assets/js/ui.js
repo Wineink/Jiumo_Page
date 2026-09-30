@@ -71,8 +71,12 @@
   /* ----------------------------------------------------------
    * 滚动入场动画：元素添加 .reveal 类后，进入视口时淡入上滑
    * 动画速度由后台「动画」分类的 speed 控制
+   * 管理后台不启用（后台实时预览区不参与入场动画）
    * -------------------------------------------------------- */
   function initScrollReveal() {
+    if (document.querySelector('.admin-nav')) {
+      return;
+    }
     var w = SITE_CFG.widgets || {};
     if (!w.scrollReveal) {
       return;

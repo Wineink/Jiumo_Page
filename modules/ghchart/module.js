@@ -166,13 +166,17 @@ function drawChart(list, m) {
   });
 
   var label = { year: '最近一年', half: '最近半年', quarter: '最近三个月', month: '最近一个月' }[m.period] || '最近一年';
+  var total = 0;
+  seq.forEach(function (item) {
+    total += item.count || 0;
+  });
   var legend = palette.map(function (c, i) {
     return '<rect x="0" y="0" width="10" height="10" rx="' + (rounded ? 2 : 0) +
       '" fill="' + c + '"></rect>';
   }).join('');
   return '<svg class="ghchart-svg" viewBox="0 0 ' + svgW + ' ' + svgH +
-    '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">' +
+    '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">' +
     rects + '</svg>' +
-    '<div class="ghchart-foot"><span>' + label + '</span>' +
-    '<span class="ghchart-legend">' + legend + '</span></div>';
+    '<div class="ghchart-foot"><span>' + label + ' · 共 ' + total +
+    ' 次贡献</span><span class="ghchart-legend">' + legend + '</span></div>';
 }

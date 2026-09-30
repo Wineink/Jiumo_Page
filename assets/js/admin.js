@@ -50,11 +50,13 @@
   function showLogin() {
     loginView.classList.remove('hidden');
     adminView.classList.add('hidden');
+    document.body.classList.remove('admin-locked');
   }
 
   function showAdmin() {
     loginView.classList.add('hidden');
     adminView.classList.remove('hidden');
+    document.body.classList.add('admin-locked');
   }
 
   function fillLoginForm() {
