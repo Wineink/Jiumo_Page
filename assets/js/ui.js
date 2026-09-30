@@ -1,5 +1,5 @@
 /* ============================================================
- * Jiumo_blog 前端交互模块
+ * Jiumo_Page 前端交互模块
  * 右下角按钮 / 深浅主题切换 / 滚动入场动画 / 粒子背景 / 打字机 / 评论区
  * 所有模块的开关与配置都来自 SITE_CFG（后台「组件模块」分类管理）
  * ============================================================ */
@@ -121,7 +121,11 @@
           detectRetina: true
         };
       }
-      window.tsParticles.load('particles-bg', opts);
+      /* tsparticles v4 的 load 接口为对象签名：{ id, options } */
+      window.tsParticles.load({ id: 'particles-bg', options: opts })
+        .catch(function (err) {
+          console.error('粒子加载失败：', err);
+        });
     };
     if (window.tsParticles) {
       start();
@@ -145,7 +149,18 @@
     if (!el) {
       return;
     }
-    var texts = (w.typingText && w.typingText.length) ? w.typingText : ['欢迎来到 Jiumo_blog'];
+    /* 打字机文案来源：后台「个人介绍（打字机）」；为空时兜底站点简介 */
+    var texts = [];
+    if (w.typingText && w.typingText.length) {
+      texts = w.typingText;
+    } else if (SITE_CFG.profile && SITE_CFG.profile.intro) {
+      texts = String(SITE_CFG.profile.intro).split(';')
+        .map(function (t) { return t.trim(); })
+        .filter(Boolean);
+    }
+    if (!texts.length) {
+      texts = ['欢迎来到 Jiumo_Page'];
+    }
     var start = function () {
       if (!window.Typed) {
         return;

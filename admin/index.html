@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理后台 - Jiumo_blog</title>
+  <title>管理后台 - Jiumo_Page</title>
   <link rel="stylesheet" href="../assets/css/style.css?v=2">
 </head>
 <body>
@@ -21,7 +21,7 @@
             </div>
             <div class="form-row">
               <label>仓库名</label>
-              <input type="text" id="loginRepo" value="Jiumo_blog" required>
+              <input type="text" id="loginRepo" value="Jiumo_Page" required>
             </div>
           </div>
           <div class="form-row">
@@ -58,7 +58,7 @@
   <!-- 管理主视图：左侧分类导航 + 内容区铺满 -->
   <div class="admin-shell hidden" id="adminView">
     <nav class="admin-nav">
-      <div class="nav-brand">Jiumo_blog<small>管理后台</small></div>
+      <div class="nav-brand">Jiumo_Page<small>管理后台</small></div>
       <button class="nav-item active" data-view="posts" id="navPosts">文章管理</button>
       <button class="nav-item" data-view="repo" id="navRepo">仓库管理</button>
       <button class="nav-item" data-view="pages" id="navPages">页面管理</button>
@@ -193,7 +193,7 @@
             </select>
           </div>
           <div class="form-row">
-            <label>个人介绍<span class="hint">显示在头像下方</span></label>
+            <label>个人介绍<span class="hint">启用打字机后以打字效果显示，多句用英文分号 ; 分隔</span></label>
             <textarea id="cfgProfileIntro" rows="3"></textarea>
           </div>
         </div>
@@ -266,6 +266,21 @@
               <label><input type="checkbox" id="cfgWDarkToggle"> 深浅色切换按钮</label>
             </div>
           </div>
+          <div class="form-row">
+            <label>深浅色按钮位置</label>
+            <select id="cfgWDarkPos">
+              <option value="bottom-right">右下角</option>
+              <option value="top-right">右上角</option>
+              <option value="hidden">不显示</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>右上角自定义按钮</h2>
+          <div class="form-row">
+            <label>按钮列表<span class="hint">每行一个：按钮文字,链接地址；显示在「设置」按钮左侧，可加多个</span></label>
+            <textarea id="cfgHeaderBtns" rows="4" placeholder="例如：&#10;GitHub,https://github.com/Wineink&#10;关于,about.html"></textarea>
+          </div>
         </div>
       </div>
 
@@ -298,7 +313,7 @@
           <div class="form-grid">
             <div class="form-row">
               <label>utterances 仓库<span class="hint">格式 owner/repo</span></label>
-              <input type="text" id="cfgUtterRepo" placeholder="Wineink/Jiumo_blog">
+              <input type="text" id="cfgUtterRepo" placeholder="Wineink/Jiumo_Page">
             </div>
             <div class="form-row">
               <label>issue-term</label>
@@ -326,7 +341,7 @@
           </div>
           <div class="form-row">
             <label>Gitalk 仓库<span class="hint">留空默认使用博客仓库</span></label>
-            <input type="text" id="cfgGitalkRepo" placeholder="Jiumo_blog">
+            <input type="text" id="cfgGitalkRepo" placeholder="Jiumo_Page">
           </div>
         </div>
       </div>
@@ -367,11 +382,7 @@
         <div class="panel">
           <h2>打字机效果</h2>
           <div class="form-row">
-            <label><input type="checkbox" id="cfgWTyping"> 启用打字机<span class="hint">显示在左侧头像卡内</span></label>
-          </div>
-          <div class="form-row">
-            <label>打字机文案<span class="hint">多句用英文分号 ; 分隔，循环播放</span></label>
-            <input type="text" id="cfgWTypingText" placeholder="欢迎来到 Jiumo_blog;记录生活与代码">
+            <label><input type="checkbox" id="cfgWTyping"> 启用打字机<span class="hint">文案在「页面管理 → 个人介绍」中编辑</span></label>
           </div>
         </div>
       </div>

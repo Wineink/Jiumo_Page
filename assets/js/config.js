@@ -1,5 +1,5 @@
 /* ============================================================
- * Jiumo_blog 公共配置与 GitHub API 封装
+ * Jiumo_Page 公共配置与 GitHub API 封装
  * 前台与后台共用，纯静态、零构建，直接部署到 GitHub Pages
  *
  * 配置体系说明（为以后开发主题做准备）：
@@ -13,14 +13,14 @@
 /* 站点默认配置：部署前把 owner 改成你的 GitHub 用户名 */
 window.SiteConfig = {
   owner: 'Wineink',
-  repo: 'Jiumo_blog',
+  repo: 'Jiumo_Page',
   branch: 'main',
   postsDir: 'posts',
-  siteTitle: '墨迹博客',
-  siteDesc: '一个托管在 GitHub Pages 上的静态博客，在 /admin 后台写作发布'
+  siteTitle: '酒墨的页面',
+  siteDesc: '一个托管在 GitHub Pages 上的静态页面，在 /admin 后台管理'
 };
 
-/* 后台设置在 localStorage 中的键名 */
+/* 后台设置在 localStorage 中的键名（保留旧键名，用户无需重新登录） */
 var STORE_KEY = 'jiumo_blog_admin';
 var DRAFT_KEY = 'jiumo_blog_draft';
 var THEME_KEY = 'jiumo_theme';   /* 用户手动切换的深浅主题记忆 */
@@ -28,14 +28,14 @@ var THEME_KEY = 'jiumo_theme';   /* 用户手动切换的深浅主题记忆 */
 /* 站点可视化配置默认值：仓库根 site-config.json 不存在或字段缺失时使用 */
 window.DEFAULT_SITE_CONFIG = {
   site: {
-    title: '墨迹博客',
-    desc: '一个托管在 GitHub Pages 上的静态博客，在 /admin 后台写作发布'
+    title: '酒墨的页面',
+    desc: '一个托管在 GitHub Pages 上的静态页面，在 /admin 后台管理'
   },
   profile: {
     showAvatar: true,          /* 是否显示头像 */
     avatar: '',                /* 头像图片地址，留空则用默认首字母头像 */
     avatarShape: 'circle',     /* circle 圆形 / square 方形 */
-    intro: '这是我的个人博客，记录生活与代码。欢迎来到 Jiumo_blog。'
+    intro: '欢迎来到酒墨的页面；记录生活与代码'
   },
   layout: {
     showSearch: true,          /* 首页是否显示搜索框 */
@@ -68,13 +68,15 @@ window.DEFAULT_SITE_CONFIG = {
   },
   widgets: {
     backToTop: true,           /* 右下角回到顶部按钮 */
-    darkToggle: true,          /* 右下角深浅色切换按钮 */
+    darkToggle: true,          /* 深浅色切换按钮 */
+    darkTogglePos: 'bottom-right', /* 深浅色按钮位置：bottom-right 右下角 / top-right 右上角 / hidden 隐藏 */
+    headerButtons: [],         /* 右上角自定义按钮：[{text, url}]，显示在设置按钮左侧 */
     busuanzi: true,            /* 不蒜子浏览量统计 */
     scrollReveal: true,        /* 滚动入场动画 */
     particles: false,          /* 粒子背景 */
     particlesPreset: 'default',/* default 连线粒子 / snow 雪花 */
     typing: false,             /* 打字机效果 */
-    typingText: ['欢迎来到 Jiumo_blog', '记录生活与代码'],
+    typingText: ['欢迎来到酒墨的页面', '记录生活与代码'],
     gitalk: { enabled: false, clientID: '', clientSecret: '', repo: '' },
     utterances: { enabled: false, repo: '', issueTerm: 'pathname', theme: 'github-light' }
   },
@@ -155,7 +157,8 @@ function getConfig() {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
     if (saved) {
       cfg.owner = saved.owner || cfg.owner;
-      cfg.repo = saved.repo || cfg.repo;
+      /* 仓库改名兼容：旧浏览器里保存的还是 Jiumo_blog，自动使用新名，无需重新登录 */
+      cfg.repo = (saved.repo === 'Jiumo_blog' || !saved.repo) ? cfg.repo : saved.repo;
       cfg.branch = saved.branch || cfg.branch;
       cfg.token = saved.token || '';
     }
@@ -228,7 +231,7 @@ function listPostFiles() {
   });
 }
 
-/* 读取文章原文：优先走 raw（不占 API 限额），8 秒超时后回退 Contents API（支持私有仓库） */
+/* 读取文章原文：优先走 raw（不占 API 限额），5 秒超时后回退 Contents API（支持私有仓库） */
 function getPostRaw(filename) {
   var c = getConfig();
   var rawUrl = 'https://raw.githubusercontent.com/' + c.owner + '/' + c.repo +
@@ -236,7 +239,7 @@ function getPostRaw(filename) {
   var ctrl = new AbortController();
   var timer = setTimeout(function () {
     ctrl.abort();
-  }, 8000);
+  }, 5000);
   return fetch(rawUrl, { signal: ctrl.signal }).then(function (res) {
     clearTimeout(timer);
     if (!res.ok) {
@@ -605,7 +608,13 @@ function applySiteConfig(cfg) {
   }
   var introEl = document.getElementById('profileIntro');
   if (introEl) {
-    introEl.textContent = p.intro || '';
+    /* 打字机启用时隐藏静态介绍行，避免信息重复；未启用时显示静态介绍 */
+    if (w.typing) {
+      introEl.classList.add('hidden');
+    } else {
+      introEl.classList.remove('hidden');
+      introEl.textContent = p.intro || '';
+    }
   }
 
   /* 右侧侧栏模块（多模块：关于/日期时间/天气/GitHub 贡献/访问统计） */
@@ -624,11 +633,54 @@ function applySiteConfig(cfg) {
   applyAppearance(cfg);
   applyTheme();
 
-  /* 右下角按钮显隐 */
-  var btnDark = document.getElementById('btnDark');
-  if (btnDark) {
-    btnDark.classList.toggle('hidden', !w.darkToggle);
+  /* 头部右上角：自定义按钮 + 暗色切换按钮（位置由后台配置） */
+  var headerBtns = document.getElementById('headerBtns');
+  if (headerBtns) {
+    /* 先移除上一次渲染的自定义按钮，保留设置按钮 */
+    headerBtns.querySelectorAll('.hdr-btn.custom').forEach(function (el) {
+      el.remove();
+    });
+    var hbs = (w.headerButtons || []).filter(function (b) {
+      return b && b.text && b.url;
+    });
+    hbs.forEach(function (b) {
+      var a = document.createElement('a');
+      a.className = 'hdr-btn custom';
+      a.href = b.url;
+      a.target = b.url.indexOf('http') === 0 ? '_blank' : '';
+      a.rel = 'noopener';
+      a.textContent = b.text;
+      /* 插到设置按钮之前 */
+      var setBtn = headerBtns.querySelector('a.hdr-btn[href="admin/index.html"]');
+      headerBtns.insertBefore(a, setBtn);
+    });
   }
+
+  var cornerBtns = document.querySelector('.corner-btns');
+  var btnDark = document.getElementById('btnDark');
+  if (btnDark && headerBtns) {
+    var pos = w.darkTogglePos || 'bottom-right';
+    if (pos === 'top-right') {
+      if (w.darkToggle !== false) {
+        headerBtns.appendChild(btnDark);
+        btnDark.classList.remove('hidden');
+      } else {
+        btnDark.classList.add('hidden');
+      }
+    } else if (pos === 'hidden') {
+      btnDark.classList.add('hidden');
+    } else {
+      /* 默认右下角 */
+      if (w.darkToggle !== false && cornerBtns) {
+        cornerBtns.appendChild(btnDark);
+        btnDark.classList.remove('hidden');
+      } else {
+        btnDark.classList.add('hidden');
+      }
+    }
+  }
+
+  /* 右下角按钮显隐 */
   var btnTop = document.getElementById('btnTop');
   if (btnTop) {
     btnTop.classList.toggle('hidden', !w.backToTop);

@@ -1,5 +1,5 @@
 /* ============================================================
- * Jiumo_blog 前台逻辑：首页文章列表 / 文章详情
+ * Jiumo_Page 前台逻辑：首页文章列表 / 文章详情
  * 启动流程：加载 site-config.json -> 应用站点配置 -> 渲染内容 -> 启动交互模块
  * ============================================================ */
 (function () {
@@ -110,7 +110,8 @@
       if (cfg.owner === 'your-github-username') {
         tip = '尚未配置仓库：请打开 assets/js/config.js，把 owner 改成你的 GitHub 用户名';
       }
-      listEl.innerHTML = '<div class="state-box error">' + escapeHtml(tip) + '</div>';
+      listEl.innerHTML = '<div class="state-box error">' + escapeHtml(tip) +
+        '<br><br><button class="btn btn-ghost btn-sm" onclick="location.reload()">重新加载</button></div>';
     });
 
     searchEl.addEventListener('input', function () {

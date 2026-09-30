@@ -1,13 +1,13 @@
 {
   "site": {
-    "title": "酒墨的页面Demo",
+    "title": "酒墨的页面",
     "desc": "一个托管在 GitHub Pages 上的静态页面，有后台管理写作发布等。"
   },
   "profile": {
     "showAvatar": true,
     "avatar": "https://avatars.githubusercontent.com/u/51371607?s=400&u=0b4ad4295b7ba05f403c1e1819bfda2a0a17417c&v=4",
     "avatarShape": "circle",
-    "intro": "欢迎来到 Jiumo_page。"
+    "intro": "欢迎来到酒墨的页面。"
   },
   "layout": {
     "showSearch": true,
@@ -67,13 +67,15 @@
   "widgets": {
     "backToTop": true,
     "darkToggle": true,
+    "darkTogglePos": "bottom-right",
+    "headerButtons": [],
     "busuanzi": false,
     "scrollReveal": true,
     "particles": true,
     "particlesPreset": "snow",
     "typing": true,
     "typingText": [
-      "欢迎来到 Jiumo_page。"
+      "欢迎来到酒墨的页面。"
     ],
     "gitalk": {
       "enabled": false,

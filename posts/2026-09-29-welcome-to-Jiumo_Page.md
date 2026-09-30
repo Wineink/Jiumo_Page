@@ -1,19 +1,19 @@
 ---
-title: "欢迎使用 Jiumo_blog"
+title: "欢迎使用 Jiumo_Page"
 date: 2026-09-29
 tags: ["公告", "教程"]
-summary: "这是 Jiumo_blog 的第一篇示例文章，介绍如何在管理后台写作、发布与管理文章。"
+summary: "这是 Jiumo_Page 的第一篇示例文章，介绍如何在管理后台写作、发布与管理文章。"
 ---
 
 
 
 
-**线上博客：** [点击访问](https://wineink.github.io/Jiumo_blog/)
-**线上后台：** [点击进入](https://wineink.github.io/Jiumo_blog/admin/)
+**线上博客：** [点击访问](https://wineink.github.io/Jiumo_Page/)
+**线上后台：** [点击进入](https://wineink.github.io/Jiumo_Page/admin/)
 
 ## 这是什么
 
-**Jiumo_blog** 是一个纯静态博客，没有服务器、没有数据库：
+**Jiumo_Page** 是一个纯静态博客，没有服务器、没有数据库：
 
 - 文章就是仓库 `posts/` 目录下的 Markdown 文件；
 - 打开 `/admin` 管理后台，用 GitHub Token 登录后即可在线写作；
@@ -41,7 +41,7 @@ summary: "这是 Jiumo_blog 的第一篇示例文章，介绍如何在管理后�
 /* 代码块示例 */
 #include <stdio.h>
 int main(void) {
-    printf("hello, Jiumo_blog!\r\n");
+    printf("hello, Jiumo_Page!\r\n");
     return 0;
 }
 ```

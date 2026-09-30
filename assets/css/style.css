@@ -79,9 +79,9 @@ a:hover {
 
 .container {
   width: 100%;
-  max-width: 1720px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 20px;
 }
 
 /* ============================================================
@@ -93,7 +93,8 @@ a:hover {
  * ============================================================ */
 .layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  /* 三栏随屏幕宽度自适应：屏幕越宽，两侧栏越宽，内容铺满全屏 */
+  grid-template-columns: clamp(240px, 17vw, 340px) minmax(0, 1fr) clamp(260px, 19vw, 380px);
   gap: 28px;
   align-items: start;
 }
@@ -334,9 +335,9 @@ a:hover {
 }
 
 .site-header .inner {
-  max-width: 1720px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -365,19 +366,45 @@ a:hover {
   font-size: 14px;
 }
 
-.site-nav {
-  font-size: 14px;
+/* 头部右侧按钮组（自定义按钮 + 暗色切换 + 设置按钮） */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   white-space: nowrap;
 }
 
-.site-nav a {
-  color: var(--muted);
-  margin-left: 18px;
+.hdr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
-.site-nav a:hover {
-  color: var(--accent);
+.hdr-btn:hover {
   text-decoration: none;
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+/* 圆形小按钮（暗色切换，移动自右下角） */
+.hdr-btn.circle {
+  width: 36px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
 }
 
 .site-footer {
@@ -1204,6 +1231,13 @@ html[data-theme="dark"] .post-article code {
   pointer-events: auto;
 }
 
+/* 暗色按钮移动到头部时的紧凑尺寸 */
+.header-actions #btnDark {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+}
+
 /* ------------------------------------------------------------
  * 粒子背景
  * ---------------------------------------------------------- */
@@ -1318,6 +1352,10 @@ html[data-theme="dark"] .post-article code {
   .site-header .inner {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
   }
 
   .site-title {

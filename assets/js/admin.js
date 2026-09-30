@@ -1,5 +1,5 @@
 /* ============================================================
- * Jiumo_blog 管理后台逻辑
+ * Jiumo_Page 管理后台逻辑
  * 左侧分类导航：文章管理 / 仓库管理 / 页面管理 / 主题 / 组件模块 / 动画管理
  * 设置暂存机制：所有面板可随意修改，最后点「应用所有设置」一次性保存
  * 退出时如有未保存修改会提示；侧栏模块支持启用、参数、排序
@@ -432,6 +432,7 @@
   /* 收集站点配置表单到 state.draft */
   function collectAllForms() {
     var d = state.draft || {};
+    var introVal = val('cfgProfileIntro');
     d.site = {
       title: val('cfgSiteTitle'),
       desc: val('cfgSiteDesc')
@@ -440,7 +441,7 @@
       showAvatar: checked('cfgShowAvatar'),
       avatar: val('cfgAvatarUrl'),
       avatarShape: val('cfgAvatarShape'),
-      intro: val('cfgProfileIntro')
+      intro: introVal
     };
     d.layout = {
       showSearch: checked('cfgShowSearch'),
@@ -458,12 +459,24 @@
     d.widgets = d.widgets || {};
     d.widgets.backToTop = checked('cfgWBackTop');
     d.widgets.darkToggle = checked('cfgWDarkToggle');
+    d.widgets.darkTogglePos = val('cfgWDarkPos');
+    /* 右上角自定义按钮：每行「文字,链接」 */
+    d.widgets.headerButtons = val('cfgHeaderBtns').split(/\r?\n/)
+      .map(function (line) {
+        var parts = line.split(',');
+        if (parts.length < 2) {
+          return null;
+        }
+        return { text: parts[0].trim(), url: parts.slice(1).join(',').trim() };
+      })
+      .filter(function (b) { return b && b.text && b.url; });
     d.widgets.busuanzi = checked('cfgWBusuanzi');
     d.widgets.scrollReveal = checked('cfgWScrollReveal');
     d.widgets.particles = checked('cfgWParticles');
     d.widgets.particlesPreset = val('cfgWParticlesPreset');
     d.widgets.typing = checked('cfgWTyping');
-    d.widgets.typingText = val('cfgWTypingText')
+    /* 个人介绍与打字机文案同步：同一个输入框，分号分句 */
+    d.widgets.typingText = introVal
       .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
     d.widgets.utterances = {
       enabled: checked('cfgUtterEnabled'),
@@ -501,7 +514,8 @@
     setVal('cfgShowAvatar', p.showAvatar);
     setVal('cfgAvatarUrl', p.avatar);
     setVal('cfgAvatarShape', p.avatarShape);
-    setVal('cfgProfileIntro', p.intro);
+    setVal('cfgProfileIntro',
+      (w.typingText && w.typingText.length) ? w.typingText.join(';') : p.intro);
     setVal('cfgShowSearch', lay.showSearch);
     setVal('cfgShowSummary', lay.showSummary);
     setVal('cfgPageSize', lay.pageSize);
@@ -513,12 +527,14 @@
     setVal('cfgFontSize', a.fontSize);
     setVal('cfgWBackTop', w.backToTop);
     setVal('cfgWDarkToggle', w.darkToggle);
+    setVal('cfgWDarkPos', w.darkTogglePos);
+    setVal('cfgHeaderBtns', (w.headerButtons || [])
+      .map(function (b) { return b.text + ',' + b.url; }).join('\n'));
     setVal('cfgWBusuanzi', w.busuanzi);
     setVal('cfgWScrollReveal', w.scrollReveal);
     setVal('cfgWParticles', w.particles);
     setVal('cfgWParticlesPreset', w.particlesPreset);
     setVal('cfgWTyping', w.typing);
-    setVal('cfgWTypingText', (w.typingText || []).join(';'));
     var utt = w.utterances || {};
     setVal('cfgUtterEnabled', utt.enabled);
     setVal('cfgUtterRepo', utt.repo);
@@ -597,7 +613,8 @@
     'cfgShowSearch': '页面管理', 'cfgShowSummary': '页面管理', 'cfgPageSize': '页面管理',
     'cfgTheme': '主题', 'cfgAccent': '主题', 'cfgAccentDark': '主题',
     'cfgButtonStyle': '主题', 'cfgRadius': '主题', 'cfgFontSize': '主题',
-    'cfgWBackTop': '主题', 'cfgWDarkToggle': '主题',
+    'cfgWBackTop': '主题', 'cfgWDarkToggle': '主题', 'cfgWDarkPos': '主题',
+    'cfgHeaderBtns': '主题',
     'cfgWBusuanzi': '组件模块',
     'cfgUtterEnabled': '组件模块', 'cfgUtterRepo': '组件模块', 'cfgUtterIssueTerm': '组件模块',
     'cfgGitalkEnabled': '组件模块', 'cfgGitalkClientID': '组件模块',
@@ -605,7 +622,7 @@
     'cfgSidebarEnabled': '组件模块', 'cfgSidebarSticky': '组件模块',
     'cfgWScrollReveal': '动画管理', 'cfgAnimSpeed': '动画管理',
     'cfgWParticles': '动画管理', 'cfgWParticlesPreset': '动画管理',
-    'cfgWTyping': '动画管理', 'cfgWTypingText': '动画管理'
+    'cfgWTyping': '动画管理'
   };
 
   function bindConfigForms() {
