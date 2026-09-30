@@ -295,16 +295,46 @@ a:hover {
   color: var(--muted);
 }
 
-/* GitHub 贡献热力图 */
+/* GitHub 贡献热力图（自绘 SVG，支持周期与样式） */
 .ghchart-wrap {
   text-align: center;
 }
 
-.ghchart {
+.ghchart-svg {
   width: 100%;
   height: auto;
-  border-radius: 6px;
   display: block;
+}
+
+.ghchart-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.ghchart-legend {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ghchart-loading,
+.ghchart-retry {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ghchart-retry {
+  margin-top: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 3px 12px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .ghchart-user {
@@ -678,21 +708,6 @@ html[data-theme="dark"] .post-article code {
 }
 
 /* ------------------------------------------------------------
- * 评论区
- * ---------------------------------------------------------- */
-.comment-box {
-  margin-top: 30px;
-}
-
-.comment-box .comment-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ------------------------------------------------------------
  * 状态提示
  * ---------------------------------------------------------- */
 .state-box {
@@ -727,8 +742,9 @@ html[data-theme="dark"] .post-article code {
  * ---------------------------------------------------------- */
 .admin-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 .admin-nav {
@@ -810,6 +826,7 @@ html[data-theme="dark"] .post-article code {
   flex: 1;
   min-width: 0;
   padding: 24px 32px 80px;
+  overflow-y: auto;
 }
 
 .admin-content .panel {
@@ -821,10 +838,15 @@ html[data-theme="dark"] .post-article code {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 0 24px;
+  padding: 4px 0 16px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--border);
 }
 
 .admin-topbar h1 {
@@ -1144,13 +1166,26 @@ html[data-theme="dark"] .post-article code {
 
 /* ------------------------------------------------------------
  * 侧栏模块管理卡片（后台组件模块）
+ * 支持：左/右栏按钮、拖拽排序、折叠设置、实时预览
  * ---------------------------------------------------------- */
 .mod-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px 18px;
-  margin-bottom: 14px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
   background: var(--bg);
+  cursor: grab;
+  transition: box-shadow 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.mod-card.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.mod-card.drag-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .mod-card .mod-head {
@@ -1164,9 +1199,18 @@ html[data-theme="dark"] .post-article code {
 .mod-card .mod-name {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 650;
   font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mod-card .mod-drag {
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: -2px;
+  cursor: grab;
 }
 
 .mod-card .mod-badge {
@@ -1184,17 +1228,231 @@ html[data-theme="dark"] .post-article code {
   border-top: 1px dashed var(--border);
 }
 
+.mod-card .mod-body.hidden {
+  display: none;
+}
+
 .mod-card .mod-actions {
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 
-.mod-arrow {
+/* 左栏 / 右栏选择按钮：选中高亮，另一个灰暗 */
+.mod-pos-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mod-pos-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mod-pos-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.mod-pos-btn:not(.active) {
+  opacity: 0.55;
+}
+
+.mod-toggle {
   width: 28px;
   height: 28px;
   padding: 0;
-  font-size: 13px;
+  font-size: 12px;
   border-radius: 7px;
+}
+
+/* 后台模块实时预览区：与主页面同款渲染 */
+.preview-shell {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 18px;
+  margin-top: 6px;
+  align-items: start;
+}
+
+.preview-shell .preview-col {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--bg);
+  min-height: 120px;
+}
+
+.preview-shell .preview-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.preview-shell .sidebar-modules .sidebar-module {
+  margin-bottom: 12px;
+}
+
+.preview-shell .ghchart-svg {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 900px) {
+  .preview-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------
+ * 文章修改历史弹窗
+ * ---------------------------------------------------------- */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-mask.hidden {
+  display: none;
+}
+
+.modal-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: min(760px, 94vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h3 {
+  margin: 0;
+  font-size: 16px;
+  word-break: break-all;
+}
+
+.modal-body {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+}
+
+.hist-item {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.hist-item .hist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+
+.hist-item .hist-head:hover {
+  background: var(--code-bg);
+}
+
+.hist-msg {
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.hist-meta {
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.hist-diff {
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+}
+
+.hist-diff.hidden {
+  display: none;
+}
+
+.diff-file {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.diff-status {
+  display: inline-block;
+  font-size: 11px;
+  border-radius: 5px;
+  padding: 1px 7px;
+  margin-right: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.diff-num {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.diff-body {
+  margin: 0;
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* ------------------------------------------------------------
+ * 主题切换圆形扩散动画
+ * ---------------------------------------------------------- */
+.theme-ripple {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  transition: clip-path 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 后台设置分类标签（旧版兼容保留） */

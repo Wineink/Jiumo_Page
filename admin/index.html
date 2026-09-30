@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=8">
+  <link rel="stylesheet" href="../assets/css/style.css?v=9">
 </head>
 <body>
 
@@ -65,9 +65,6 @@
       <button class="nav-item" data-view="theme" id="navTheme">主题</button>
       <button class="nav-item" data-view="widgets" id="navWidgets">组件模块</button>
       <button class="nav-item" data-view="animation" id="navAnimation">动画管理</button>
-      <div class="nav-sep"></div>
-      <a class="nav-item" href="../index.html">博客首页</a>
-      <button class="nav-item" id="btnLogout">登出</button>
     </nav>
 
     <main class="admin-content">
@@ -114,17 +111,13 @@
           </div>
           <div class="form-grid">
             <div class="form-row">
-              <label>日期</label>
-              <input type="text" id="editDate">
-            </div>
-            <div class="form-row">
               <label>标签<span class="hint">多个标签用英文逗号分隔</span></label>
               <input type="text" id="editTags" placeholder="随笔, 技术">
             </div>
-          </div>
-          <div class="form-row">
-            <label>摘要<span class="hint">留空则自动截取正文开头</span></label>
-            <input type="text" id="editSummary" placeholder="一句话概括这篇文章">
+            <div class="form-row">
+              <label>摘要<span class="hint">留空则自动截取正文开头</span></label>
+              <input type="text" id="editSummary" placeholder="一句话概括这篇文章">
+            </div>
           </div>
           <div class="editor-body" id="editBodyWrap">
             <div class="form-row" style="margin-bottom:0;">
@@ -134,8 +127,10 @@
           </div>
           <div class="preview-pane post-article hidden" id="editPreview"></div>
           <div class="actions" style="margin-top:18px;">
+            <button class="btn btn-ghost" id="btnSaveDraft">保存</button>
             <button class="btn btn-primary" id="btnSave">保存并发布</button>
             <button class="btn btn-ghost" id="btnCancel">取消</button>
+            <span style="font-size:12px;color:var(--muted);align-self:center;" id="editDateHint"></span>
           </div>
         </div>
       </div>
@@ -292,61 +287,37 @@
       <!-- 组件模块 -->
       <div class="view-pane hidden" id="view-widgets">
         <div class="panel">
-          <h2>右侧模块</h2>
+          <h2>模块设置</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgSidebarEnabled"> 显示右侧模块区</label>
+              <label><input type="checkbox" id="cfgSidebarEnabled"> 显示侧栏模块区</label>
             </div>
             <div class="form-row">
               <label><input type="checkbox" id="cfgSidebarSticky"> 固定不随页面滑动</label>
             </div>
           </div>
           <div id="modulesList" style="margin-top:14px;"></div>
+          <p style="font-size:12px;color:var(--muted);margin:12px 0 0;">
+            提示：拖动模块卡片可调整顺序；点卡片标题可折叠/展开设置；「左栏/右栏」按钮决定模块显示位置。
+          </p>
+        </div>
+        <div class="panel">
+          <h2>实时预览（与主页面一致）</h2>
+          <div class="preview-shell">
+            <div class="preview-col" id="previewLeft">
+              <div class="preview-label">左栏</div>
+              <div class="sidebar-modules" id="leftModules"></div>
+            </div>
+            <div class="preview-col" id="previewRight">
+              <div class="preview-label">右栏</div>
+              <div class="sidebar-modules" id="sidebarModules"></div>
+            </div>
+          </div>
         </div>
         <div class="panel">
           <h2>浏览量统计</h2>
           <div class="form-row">
             <label><input type="checkbox" id="cfgWBusuanzi"> 页脚显示不蒜子全站浏览</label>
-          </div>
-        </div>
-        <div class="panel">
-          <h2>评论区（二选一启用）</h2>
-          <div class="form-row">
-            <label><input type="checkbox" id="cfgUtterEnabled"> 启用 utterances 评论
-              <span class="hint">评论存 GitHub Issues，需先在 utterances 官网安装到本仓库</span></label>
-          </div>
-          <div class="form-grid">
-            <div class="form-row">
-              <label>utterances 仓库<span class="hint">格式 owner/repo</span></label>
-              <input type="text" id="cfgUtterRepo" placeholder="jiumooo/Jiumo_Page">
-            </div>
-            <div class="form-row">
-              <label>issue-term</label>
-              <select id="cfgUtterIssueTerm">
-                <option value="pathname">pathname</option>
-                <option value="url">url</option>
-                <option value="title">title</option>
-                <option value="og:title">og:title</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <label><input type="checkbox" id="cfgGitalkEnabled"> 启用 Gitalk 评论
-              <span class="hint">需注册 GitHub OAuth App 获取 clientID / clientSecret</span></label>
-          </div>
-          <div class="form-grid">
-            <div class="form-row">
-              <label>Gitalk clientID</label>
-              <input type="text" id="cfgGitalkClientID">
-            </div>
-            <div class="form-row">
-              <label>Gitalk clientSecret</label>
-              <input type="text" id="cfgGitalkClientSecret">
-            </div>
-          </div>
-          <div class="form-row">
-            <label>Gitalk 仓库<span class="hint">留空默认使用博客仓库</span></label>
-            <input type="text" id="cfgGitalkRepo" placeholder="Jiumo_Page">
           </div>
         </div>
       </div>
@@ -390,6 +361,27 @@
             <label><input type="checkbox" id="cfgWTyping"> 启用打字机<span class="hint">文案在「页面管理 → 个人介绍」中编辑</span></label>
           </div>
         </div>
+        <div class="panel">
+          <h2>主题切换动画</h2>
+          <div class="form-row">
+            <label>点击深浅色按钮时的过渡效果</label>
+            <select id="cfgWThemeAnim">
+              <option value="ripple">圆形扩散（从点击处扩散到全屏）</option>
+              <option value="none">无动画（直接切换）</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 历史版本弹窗 -->
+      <div class="modal-mask hidden" id="historyMask">
+        <div class="modal-box" id="historyBox">
+          <div class="modal-head">
+            <h3 id="historyTitle">文章修改历史</h3>
+            <button class="btn btn-ghost btn-sm" id="historyClose">✕</button>
+          </div>
+          <div class="modal-body" id="historyBody"></div>
+        </div>
       </div>
 
     </main>
@@ -401,14 +393,14 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=8"></script>
-  <script src="../assets/vendor/marked.min.js?v=8"></script>
-  <script src="../assets/js/ui.js?v=8"></script>
+  <script src="../assets/js/config.js?v=9"></script>
+  <script src="../assets/vendor/marked.min.js?v=9"></script>
+  <script src="../assets/js/ui.js?v=9"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=8"></script>
-  <script src="../modules/weather/module.js?v=8"></script>
-  <script src="../modules/ghchart/module.js?v=8"></script>
-  <script src="../modules/stats/module.js?v=8"></script>
-  <script src="../assets/js/admin.js?v=8"></script>
+  <script src="../modules/datetime/module.js?v=9"></script>
+  <script src="../modules/weather/module.js?v=9"></script>
+  <script src="../modules/ghchart/module.js?v=9"></script>
+  <script src="../modules/stats/module.js?v=9"></script>
+  <script src="../assets/js/admin.js?v=9"></script>
 </body>
 </html>

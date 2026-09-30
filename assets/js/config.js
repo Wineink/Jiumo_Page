@@ -53,7 +53,7 @@ window.DEFAULT_SITE_CONFIG = {
       { id: 'weather', enabled: false, title: '天气',
         city: '无锡', lat: 31.49, lon: 120.31, unit: 'celsius' },
       { id: 'ghchart', enabled: false, title: 'GitHub 贡献',
-        username: 'jiumooo' },
+        username: 'jiumooo', period: 'year', style: 'classic', rounded: true },
       { id: 'stats', enabled: false, title: '访问统计',
         showPv: true, showUv: false }
     ]
@@ -77,8 +77,7 @@ window.DEFAULT_SITE_CONFIG = {
     particlesPreset: 'default',/* default 连线粒子 / snow 雪花 */
     typing: false,             /* 打字机效果 */
     typingText: ['欢迎来到酒墨的页面', '记录生活与代码'],
-    gitalk: { enabled: false, clientID: '', clientSecret: '', repo: '' },
-    utterances: { enabled: false, repo: '', issueTerm: 'pathname', theme: 'github-light' }
+    themeAnim: 'ripple'        /* 主题切换动画：ripple 点击处圆形扩散 / none 无动画 */
   },
   animation: {
     speed: 'normal'            /* slow 慢 / normal 正常 / fast 快 */

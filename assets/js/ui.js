@@ -27,13 +27,43 @@
 
     var btnDark = document.getElementById('btnDark');
     if (btnDark) {
-      btnDark.addEventListener('click', function () {
+      btnDark.addEventListener('click', function (e) {
         var cur = applyTheme();
         var next = cur === 'dark' ? 'light' : 'dark';
-        try {
-          localStorage.setItem(THEME_KEY, next);
-        } catch (e) {}
-        applyTheme(next);
+        var anim = (SITE_CFG.widgets && SITE_CFG.widgets.themeAnim) || 'ripple';
+        /* 圆形扩散动画：以点击位置为圆心，从 0 扩散覆盖全屏 */
+        if (anim === 'ripple') {
+          var x = (e && e.clientX != null) ? e.clientX : window.innerWidth / 2;
+          var y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
+          var r = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+          );
+          try {
+            localStorage.setItem(THEME_KEY, next);
+          } catch (err) {}
+          applyTheme(next);
+          var ov = document.createElement('div');
+          ov.className = 'theme-ripple';
+          ov.style.clipPath = 'circle(0px at ' + x + 'px ' + y + 'px)';
+          document.body.appendChild(ov);
+          /* 先应用新主题再取背景色，overlay 呈现新主题背景 */
+          ov.style.background = getComputedStyle(document.documentElement)
+            .getPropertyValue('--bg').trim() || (next === 'dark' ? '#12161b' : '#faf9f6');
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              ov.style.clipPath = 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)';
+            });
+          });
+          setTimeout(function () {
+            ov.remove();
+          }, 700);
+        } else {
+          try {
+            localStorage.setItem(THEME_KEY, next);
+          } catch (err) {}
+          applyTheme(next);
+        }
       });
     }
   }
@@ -186,64 +216,6 @@
   }
 
   /* ----------------------------------------------------------
-   * 评论区：utterances（GitHub Issues）或 Gitalk（需 OAuth App）
-   * 仅在文章详情页有 #commentBox 时生效
-   * -------------------------------------------------------- */
-  function initComment() {
-    var box = document.getElementById('commentBox');
-    if (!box) {
-      return;
-    }
-    var w = SITE_CFG.widgets || {};
-    var c = getConfig();
-    var enabled = (w.utterances && w.utterances.enabled && w.utterances.repo) ||
-      (w.gitalk && w.gitalk.enabled && w.gitalk.clientID);
-
-    /* 已启用评论组件时，隐藏未启用提示 */
-    var tip = box.querySelector('.comment-tip');
-    if (tip) {
-      tip.classList.toggle('hidden', !!enabled);
-    }
-    if (!enabled) {
-      return;
-    }
-
-    if (w.utterances && w.utterances.enabled && w.utterances.repo) {
-      var s = document.createElement('script');
-      s.src = 'https://utteranc.es/client.js';
-      s.setAttribute('repo', w.utterances.repo);
-      s.setAttribute('issue-term', w.utterances.issueTerm || 'pathname');
-      s.setAttribute('theme', w.utterances.theme || 'github-light');
-      s.setAttribute('crossorigin', 'anonymous');
-      s.async = true;
-      box.appendChild(s);
-      return;
-    }
-
-    if (w.gitalk && w.gitalk.enabled && w.gitalk.clientID) {
-      var css = document.createElement('link');
-      css.rel = 'stylesheet';
-      css.href = 'https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.css';
-      document.head.appendChild(css);
-      loadScript('https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.js', function () {
-        if (!window.Gitalk) {
-          return;
-        }
-        var g = new window.Gitalk({
-          clientID: w.gitalk.clientID,
-          clientSecret: w.gitalk.clientSecret,
-          repo: w.gitalk.repo || c.repo,
-          owner: c.owner,
-          admin: [c.owner],
-          id: location.pathname,
-          distractionFreeMode: false
-        });
-        g.render('commentBox');
-      });
-    }
-  }
-
-  /* ----------------------------------------------------------
    * 统一入口：页面加载完 site-config 后调用
    * -------------------------------------------------------- */
   window.initJiumoUI = function () {
@@ -251,6 +223,5 @@
     initScrollReveal();
     initParticles();
     initTyping();
-    initComment();
   };
 })();

@@ -14,9 +14,8 @@
   var filenameBox = document.getElementById('filenameBox');
   var viewTitle = document.getElementById('viewTitle');
 
-  /* 编辑器元素 */
+  /* 编辑器元素（日期固定为创建时间，不提供输入） */
   var editTitle = document.getElementById('editTitle');
-  var editDate = document.getElementById('editDate');
   var editTags = document.getElementById('editTags');
   var editSummary = document.getElementById('editSummary');
   var editBody = document.getElementById('editBody');
@@ -188,6 +187,8 @@
         '</div>' +
         '<div class="item-actions">' +
           toggleBtn +
+          '<button class="btn btn-ghost btn-sm" data-action="history" data-name="' +
+            encodeURIComponent(p.name) + '">历史</button>' +
           '<button class="btn btn-ghost btn-sm" data-action="edit" data-name="' +
             encodeURIComponent(p.name) + '">编辑</button>' +
           '<button class="btn btn-danger btn-sm" data-action="del" data-name="' +
@@ -212,6 +213,117 @@
       toggleDraft(name, false);
     } else if (action === 'unpublish') {
       toggleDraft(name, true);
+    } else if (action === 'history') {
+      showHistory(name);
+    }
+  });
+
+  /* ----------------------------------------------------------
+   * 文章修改历史：通过 GitHub commits API 拉取该文件的提交记录
+   * 每次提交可展开查看变更内容（diff patch）
+   * -------------------------------------------------------- */
+  function showHistory(name) {
+    var mask = document.getElementById('historyMask');
+    var box = document.getElementById('historyBody');
+    var title = document.getElementById('historyTitle');
+    if (!mask || !box) {
+      return;
+    }
+    title.textContent = '《' + (escapeHtml(name) || name) + '》的修改历史';
+    box.innerHTML = '<div class="state-box"><span class="spinner"></span>正在加载提交记录…</div>';
+    mask.classList.remove('hidden');
+    var c = getConfig();
+    var q = 'path=' + encodeURIComponent(c.postsDir + '/' + name) +
+      '&per_page=50&sha=' + encodeURIComponent(c.branch);
+    apiRequest('/repos/' + c.owner + '/' + c.repo + '/commits?' + q)
+      .then(function (list) {
+        if (!list || !list.length) {
+          box.innerHTML = '<div class="state-box">没有找到该文章的提交记录。</div>';
+          return;
+        }
+        box.innerHTML = list.map(function (cm) {
+          var msg = (cm.commit && cm.commit.message) || '更新';
+          var date = (cm.commit && cm.commit.author && cm.commit.author.date) || '';
+          var short = (cm.sha || '').slice(0, 7);
+          return '<div class="hist-item" data-sha="' + cm.sha + '">' +
+            '<div class="hist-head">' +
+              '<span class="hist-msg">' + escapeHtml(msg) + '</span>' +
+              '<span class="hist-meta">' + escapeHtml(short) + ' · ' +
+                escapeHtml(formatHistDate(date)) + '</span>' +
+            '</div>' +
+            '<div class="hist-diff hidden"></div>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function (err) {
+        box.innerHTML = '<div class="state-box error">加载失败：' +
+          escapeHtml(err.message) + '</div>';
+      });
+  }
+
+  function formatHistDate(s) {
+    if (!s) {
+      return '';
+    }
+    var d = new Date(s);
+    if (isNaN(d.getTime())) {
+      return s;
+    }
+    function p(n) {
+      return n < 10 ? '0' + n : '' + n;
+    }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  /* 点击某条提交 → 拉取该 commit 的文件 diff 展开显示 */
+  document.getElementById('historyBody').addEventListener('click', function (e) {
+    var item = e.target.closest('.hist-item');
+    if (!item) {
+      return;
+    }
+    var diffEl = item.querySelector('.hist-diff');
+    if (diffEl.classList.contains('hidden')) {
+      diffEl.classList.remove('hidden');
+      diffEl.innerHTML = '<div class="state-box"><span class="spinner"></span>加载变更内容…</div>';
+      var c = getConfig();
+      apiRequest('/repos/' + c.owner + '/' + c.repo + '/commits/' + item.getAttribute('data-sha'))
+        .then(function (data) {
+          var files = data.files || [];
+          if (!files.length) {
+            diffEl.innerHTML = '<div class="state-box">该提交没有文件变更。</div>';
+            return;
+          }
+          diffEl.innerHTML = files.map(function (f) {
+            var patch = f.patch || '';
+            var statusTxt = f.status === 'added' ? '新增' :
+              (f.status === 'removed' ? '删除' : (f.status === 'renamed' ? '重命名' : '修改'));
+            var head = '<div class="diff-file">' +
+              '<span class="diff-status">' + statusTxt + '</span> ' +
+              escapeHtml(f.filename) + (f.additions != null ?
+                ' <span class="diff-num">+' + f.additions + ' -' + f.deletions + '</span>' : '') +
+              '</div>';
+            if (!patch) {
+              return head + '<div class="diff-body"><span class="state-box">（无文本差异）</span></div>';
+            }
+            return head + '<pre class="diff-body">' + escapeHtml(patch) + '</pre>';
+          }).join('');
+        })
+        .catch(function (err) {
+          diffEl.innerHTML = '<div class="state-box error">加载失败：' +
+            escapeHtml(err.message) + '</div>';
+        });
+    } else {
+      diffEl.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('historyClose').addEventListener('click', function () {
+    document.getElementById('historyMask').classList.add('hidden');
+  });
+  document.getElementById('historyMask').addEventListener('click', function (e) {
+    if (e.target === this) {
+      this.classList.add('hidden');
     }
   });
 
@@ -333,12 +445,11 @@
   }
 
   /* ----------------------------------------------------------
-   * 编辑器
+   * 编辑器（日期固定为创建时间，不在表单中修改）
    * -------------------------------------------------------- */
   function collectForm() {
     return {
       title: editTitle.value,
-      date: editDate.value,
       tags: editTags.value,
       summary: editSummary.value,
       body: editBody.value
@@ -347,11 +458,13 @@
 
   function resetEditor() {
     editTitle.value = '';
-    editDate.value = todayStr();
     editTags.value = '';
     editSummary.value = '';
     editBody.value = '';
     editPreview.innerHTML = '';
+    if (document.getElementById('editDateHint')) {
+      document.getElementById('editDateHint').textContent = '';
+    }
     switchEditTab('edit');
   }
 
@@ -369,12 +482,15 @@
     getPostMeta(name).then(function (data) {
       var meta = parseFrontMatter(base64ToUtf8(data.content));
       state.isNew = false;
-      state.editing = { name: name, sha: data.sha };
+      state.editing = { name: name, sha: data.sha, date: meta.date || name.slice(0, 10) };
       editTitle.value = meta.title || '';
-      editDate.value = meta.date || name.slice(0, 10);
       editTags.value = meta.tags.join(', ');
       editSummary.value = meta.summary || '';
       editBody.value = meta.body || '';
+      var hint = document.getElementById('editDateHint');
+      if (hint) {
+        hint.textContent = '创建时间：' + state.editing.date + '（不可修改）';
+      }
       filenameBox.textContent = '文件名：' + name + '（编辑时保持不变）';
       switchEditTab('edit');
       editorPanel.classList.remove('hidden');
@@ -390,9 +506,10 @@
     editBodyWrap.classList.toggle('hidden', !isEdit);
     editPreview.classList.toggle('hidden', isEdit);
     if (!isEdit) {
+      var d = state.isNew ? todayStr() : (state.editing && state.editing.date) || '';
       editPreview.innerHTML =
         '<h1>' + escapeHtml(editTitle.value || '无标题') + '</h1>' +
-        '<div class="post-meta"><span>' + escapeHtml(editDate.value) + '</span></div>' +
+        '<div class="post-meta"><span>' + escapeHtml(d) + '</span></div>' +
         renderMarkdown(editBody.value);
       fixRelativeLinks(editPreview, getConfig().postsDir);
     }
@@ -419,6 +536,7 @@
       localStorage.removeItem(DRAFT_KEY);
       return;
     }
+    f.date = todayStr();
     localStorage.setItem(DRAFT_KEY, JSON.stringify(f));
   }
 
@@ -430,7 +548,6 @@
     if (d && (d.title || d.body)) {
       if (window.confirm('发现上次未发布的草稿《' + (d.title || '无标题') + '》，是否恢复？')) {
         editTitle.value = d.title || '';
-        editDate.value = d.date || todayStr();
         editTags.value = d.tags || '';
         editSummary.value = d.summary || '';
         editBody.value = d.body || '';
@@ -440,68 +557,95 @@
     }
   }
 
-  [editTitle, editDate, editTags, editSummary, editBody].forEach(function (el) {
+  [editTitle, editTags, editSummary, editBody].forEach(function (el) {
     el.addEventListener('input', scheduleDraft);
   });
 
-  document.getElementById('btnSave').addEventListener('click', function () {
+  /* 保存（保持当前发布状态）：新建保存为待发布；编辑保留原 draft 状态 */
+  function doSave(publish) {
     var f = collectForm();
     if (!f.title.trim()) {
       showToast('请先填写标题', 'error');
       editTitle.focus();
       return;
     }
-    if (!f.date.trim()) {
-      f.date = todayStr();
-    }
     var tags = f.tags.split(',')
       .map(function (t) { return t.trim(); })
       .filter(Boolean);
-    var fullContent = buildFrontMatter({
-      title: f.title.trim(),
-      date: f.date.trim(),
-      tags: tags,
-      summary: f.summary.trim()
-    }) + f.body;
 
+    var isNew = state.isNew;
     var filename;
     var sha = null;
-    if (state.isNew) {
-      filename = buildFilename(f.title, f.date.trim());
+    var date;
+    var curDraft = false;
+
+    if (isNew) {
+      date = todayStr();
+      filename = buildFilename(f.title, date);
+      /* 新建文章：仅「保存并发布」为已发布，普通保存为待发布 */
+      curDraft = !publish;
     } else {
       filename = state.editing.name;
+      date = state.editing.date || todayStr();
     }
 
-    var btn = document.getElementById('btnSave');
+    var btn = document.getElementById(publish ? 'btnSave' : 'btnSaveDraft');
+    var btnText = publish ? '保存并发布' : '保存';
     btn.disabled = true;
     btn.textContent = '保存中…';
 
     var prep = Promise.resolve();
-    if (!state.isNew) {
+    if (!isNew) {
       prep = getPostMeta(filename).then(function (m) {
         sha = m.sha;
+        /* 编辑已有文章：保留文章当前的发布状态 */
+        var cur = parseFrontMatter(base64ToUtf8(m.content));
+        curDraft = cur.draft === 'true' || cur.draft === true;
       });
     }
 
     prep.then(function () {
-      var msg = (state.isNew ? '发布文章：' : '更新文章：') + filename;
+      var meta = {
+        title: f.title.trim(),
+        date: date,
+        tags: tags,
+        summary: f.summary.trim()
+      };
+      if (curDraft) {
+        meta.draft = true;
+      }
+      var fullContent = buildFrontMatter(meta) + f.body;
+      var msg = publish ?
+        ((isNew ? '发布文章：' : '更新并发布：') + filename) :
+        ((isNew ? '保存文章（待发布）：' : '更新文章：') + filename);
       return savePost(filename, fullContent, sha, msg);
     }).then(function () {
       localStorage.removeItem(DRAFT_KEY);
-      showToast('已保存，GitHub Pages 通常 1 分钟内生效', 'success');
+      showToast(publish ?
+        '已保存并发布，首页 1 分钟内可见' :
+        (isNew ? '已保存为待发布，不会显示在首页' : '已保存'),
+        'success');
       btn.disabled = false;
-      btn.textContent = '保存并发布';
+      btn.textContent = btnText;
       editorPanel.classList.add('hidden');
       loadPosts();
     }).catch(function (err) {
       btn.disabled = false;
-      btn.textContent = '保存并发布';
+      btn.textContent = btnText;
       var msg = '保存失败：' + err.message;
       if (err.status === 422) {
         msg = '保存失败：同名文章已存在，请调整标题或日期';
       }
       showToast(msg, 'error');
     });
+  }
+
+  document.getElementById('btnSaveDraft').addEventListener('click', function () {
+    doSave(false);
+  });
+
+  document.getElementById('btnSave').addEventListener('click', function () {
+    doSave(true);
   });
 
   document.getElementById('btnCancel').addEventListener('click', function () {
@@ -585,18 +729,7 @@
     /* 个人介绍与打字机文案同步：同一个输入框，分号分句 */
     d.widgets.typingText = introVal
       .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
-    d.widgets.utterances = {
-      enabled: checked('cfgUtterEnabled'),
-      repo: val('cfgUtterRepo'),
-      issueTerm: val('cfgUtterIssueTerm'),
-      theme: 'github-light'
-    };
-    d.widgets.gitalk = {
-      enabled: checked('cfgGitalkEnabled'),
-      clientID: val('cfgGitalkClientID'),
-      clientSecret: val('cfgGitalkClientSecret'),
-      repo: val('cfgGitalkRepo')
-    };
+    d.widgets.themeAnim = val('cfgWThemeAnim');
     d.animation = { speed: val('cfgAnimSpeed') };
     d.sidebar = d.sidebar || {};
     d.sidebar.enabled = checked('cfgSidebarEnabled');
@@ -642,19 +775,12 @@
     setVal('cfgWParticles', w.particles);
     setVal('cfgWParticlesPreset', w.particlesPreset);
     setVal('cfgWTyping', w.typing);
-    var utt = w.utterances || {};
-    setVal('cfgUtterEnabled', utt.enabled);
-    setVal('cfgUtterRepo', utt.repo);
-    setVal('cfgUtterIssueTerm', utt.issueTerm);
-    var gk = w.gitalk || {};
-    setVal('cfgGitalkEnabled', gk.enabled);
-    setVal('cfgGitalkClientID', gk.clientID);
-    setVal('cfgGitalkClientSecret', gk.clientSecret);
-    setVal('cfgGitalkRepo', gk.repo);
+    setVal('cfgWThemeAnim', w.themeAnim || 'ripple');
     setVal('cfgAnimSpeed', anim.speed);
     setVal('cfgSidebarEnabled', sb.enabled);
     setVal('cfgSidebarSticky', sb.sticky);
     renderModulesList();
+    previewModules();
   }
 
   function val(id) {
@@ -723,13 +849,10 @@
     'cfgWBackTop': '主题', 'cfgWDarkToggle': '主题', 'cfgWDarkPos': '主题',
     'cfgHeaderBtns': '主题',
     'cfgWBusuanzi': '组件模块',
-    'cfgUtterEnabled': '组件模块', 'cfgUtterRepo': '组件模块', 'cfgUtterIssueTerm': '组件模块',
-    'cfgGitalkEnabled': '组件模块', 'cfgGitalkClientID': '组件模块',
-    'cfgGitalkClientSecret': '组件模块', 'cfgGitalkRepo': '组件模块',
     'cfgSidebarEnabled': '组件模块', 'cfgSidebarSticky': '组件模块',
     'cfgWScrollReveal': '动画管理', 'cfgAnimSpeed': '动画管理',
     'cfgWParticles': '动画管理', 'cfgWParticlesPreset': '动画管理',
-    'cfgWTyping': '动画管理'
+    'cfgWTyping': '动画管理', 'cfgWThemeAnim': '动画管理'
   };
 
   function bindConfigForms() {
@@ -788,7 +911,13 @@
     ],
     ghchart: [
       { key: 'title', label: '模块标题', type: 'text' },
-      { key: 'username', label: 'GitHub 用户名', type: 'text' }
+      { key: 'username', label: 'GitHub 用户名', type: 'text' },
+      { key: 'period', label: '时间范围', type: 'select',
+        options: [['year', '全年'], ['half', '半年'], ['quarter', '三个月'], ['month', '一个月']] },
+      { key: 'style', label: '显示样式', type: 'select',
+        options: [['classic', '经典绿'], ['dark', '深色'], ['coral', '珊瑚橙'], ['custom', '自定义色']] },
+      { key: 'color', label: '自定义主色（仅自定义色生效）', type: 'text' },
+      { key: 'rounded', label: '方块圆角', type: 'checkbox' }
     ],
     stats: [
       { key: 'title', label: '模块标题', type: 'text' },
@@ -836,26 +965,48 @@
           '" value="' + escapeHtml(m[f.key] == null ? '' : m[f.key]) + '"' +
           (f.step ? ' step="' + f.step + '"' : '') + '></div>';
       }).join('');
-      return '<div class="mod-card" data-id="' + m.id + '">' +
+      var pos = m.position === 'left' ? 'left' : 'right';
+      return '<div class="mod-card" data-id="' + m.id + '" draggable="true">' +
         '<div class="mod-head">' +
-          '<label class="mod-name"><input type="checkbox" class="mod-enabled" data-mod="' +
-            m.id + '"' + (m.enabled ? ' checked' : '') + '> ' +
+          '<label class="mod-name">' +
+            '<span class="mod-drag" title="拖动排序">⋮⋮</span>' +
+            '<input type="checkbox" class="mod-enabled" data-mod="' +
+              m.id + '"' + (m.enabled ? ' checked' : '') + '> ' +
             escapeHtml(m.title || m.id) + ' <span class="mod-badge">' + m.id + '</span></label>' +
           '<div class="mod-actions">' +
-            '<select class="mod-pos" data-mod="' + m.id + '" data-key="position" title="模块放置位置">' +
-              '<option value="left"' + (m.position === 'left' ? ' selected' : '') + '>左栏</option>' +
-              '<option value="right"' + (m.position !== 'left' ? ' selected' : '') + '>右栏</option>' +
-            '</select>' +
-            '<button class="btn btn-ghost btn-sm mod-arrow" data-move="up" data-idx="' + idx +
-            '" title="上移">↑</button>' +
-            '<button class="btn btn-ghost btn-sm mod-arrow" data-move="down" data-idx="' + idx +
-            '" title="下移">↓</button>' +
+            '<button class="mod-pos-btn' + (pos === 'left' ? ' active' : '') +
+              '" data-pos="left" data-mod="' + m.id + '" title="显示在左栏">左栏</button>' +
+            '<button class="mod-pos-btn' + (pos === 'right' ? ' active' : '') +
+              '" data-pos="right" data-mod="' + m.id + '" title="显示在右栏">右栏</button>' +
+            '<button class="btn btn-ghost btn-sm mod-toggle" data-mod="' + m.id +
+              '" title="折叠/展开设置">▸</button>' +
           '</div>' +
         '</div>' +
-        '<div class="mod-body">' + body + '</div>' +
+        '<div class="mod-body hidden">' + body + '</div>' +
       '</div>';
     }).join('') ||
       '<div class="state-box" style="padding:20px 0;">暂无模块</div>';
+  }
+
+  /* 实时预览：与主页面同款渲染函数，改设置即刻看到效果 */
+  function previewModules() {
+    if (!state.draft) {
+      return;
+    }
+    if (typeof renderSidebarModules === 'function') {
+      renderSidebarModules(state.draft);
+      return;
+    }
+    var l = document.getElementById('leftModules');
+    var r = document.getElementById('sidebarModules');
+    if (l) {
+      l.innerHTML = '';
+      renderModuleHtml(l, state.draft, 'left');
+    }
+    if (r) {
+      r.innerHTML = '';
+      renderModuleHtml(r, state.draft, 'right');
+    }
   }
 
   document.getElementById('modulesList').addEventListener('change', function (e) {
@@ -881,25 +1032,101 @@
         (t.type === 'number' ? parseFloat(t.value) : t.value);
     }
     markDirty('组件模块');
+    renderModulesList();
+    previewModules();
   });
 
   document.getElementById('modulesList').addEventListener('click', function (e) {
-    var btn = e.target.closest('button[data-move]');
-    if (!btn || !state.draft) {
+    if (!state.draft) {
+      return;
+    }
+    /* 左右栏位置按钮 */
+    var posBtn = e.target.closest('button[data-pos]');
+    if (posBtn) {
+      var mods = (state.draft.sidebar && state.draft.sidebar.modules) || [];
+      for (var i = 0; i < mods.length; i++) {
+        if (mods[i].id === posBtn.getAttribute('data-mod')) {
+          mods[i].position = posBtn.getAttribute('data-pos');
+          break;
+        }
+      }
+      markDirty('组件模块');
+      renderModulesList();
+      previewModules();
+      return;
+    }
+    /* 折叠 / 展开设置区（默认折叠） */
+    var toggle = e.target.closest('.mod-toggle');
+    if (toggle) {
+      var card = toggle.closest('.mod-card');
+      if (card) {
+        var body = card.querySelector('.mod-body');
+        body.classList.toggle('hidden');
+        toggle.textContent = body.classList.contains('hidden') ? '▸' : '▾';
+      }
+      return;
+    }
+  });
+
+  /* 拖拽排序：拖动模块卡片调整顺序 */
+  var dragIdx = -1;
+  document.getElementById('modulesList').addEventListener('dragstart', function (e) {
+    var card = e.target.closest('.mod-card');
+    if (!card || !state.draft) {
+      return;
+    }
+    dragIdx = Array.prototype.indexOf.call(
+      document.getElementById('modulesList').children, card);
+    e.dataTransfer.effectAllowed = 'move';
+    try {
+      e.dataTransfer.setData('text/plain', String(dragIdx));
+    } catch (err) {}
+    card.classList.add('dragging');
+  });
+  document.getElementById('modulesList').addEventListener('dragend', function (e) {
+    var card = e.target.closest('.mod-card');
+    if (card) {
+      card.classList.remove('dragging');
+    }
+    dragIdx = -1;
+  });
+  document.getElementById('modulesList').addEventListener('dragover', function (e) {
+    if (dragIdx < 0) {
+      return;
+    }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    var target = e.target.closest('.mod-card');
+    var box = document.getElementById('modulesList');
+    if (!target) {
+      return;
+    }
+    var ti = Array.prototype.indexOf.call(box.children, target);
+    box.children.forEach(function (c) {
+      c.classList.remove('drag-over');
+    });
+    target.classList.add('drag-over');
+  });
+  document.getElementById('modulesList').addEventListener('drop', function (e) {
+    if (dragIdx < 0 || !state.draft) {
+      return;
+    }
+    e.preventDefault();
+    var target = e.target.closest('.mod-card');
+    var box = document.getElementById('modulesList');
+    if (!target) {
+      return;
+    }
+    var ti = Array.prototype.indexOf.call(box.children, target);
+    if (ti === dragIdx) {
       return;
     }
     var mods = (state.draft.sidebar && state.draft.sidebar.modules) || [];
-    var idx = parseInt(btn.getAttribute('data-idx'), 10);
-    var dir = btn.getAttribute('data-move') === 'up' ? -1 : 1;
-    var ni = idx + dir;
-    if (idx < 0 || ni < 0 || ni >= mods.length) {
-      return;
-    }
-    var tmp = mods[idx];
-    mods[idx] = mods[ni];
-    mods[ni] = tmp;
-    renderModulesList();
+    var moved = mods.splice(dragIdx, 1)[0];
+    mods.splice(ti, 0, moved);
     markDirty('组件模块');
+    renderModulesList();
+    previewModules();
   });
 
   /* ----------------------------------------------------------
@@ -982,13 +1209,6 @@
     }
     cb();
   }
-
-  document.getElementById('btnLogout').addEventListener('click', function () {
-    guardExit(function () {
-      clearSettings();
-      location.reload();
-    });
-  });
 
   document.getElementById('btnLogoutTop').addEventListener('click', function () {
     guardExit(function () {
