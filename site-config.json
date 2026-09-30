@@ -42,17 +42,18 @@
         "unit": "celsius"
       },
       {
-        "id": "ghchart",
-        "enabled": true,
-        "title": "GitHub 贡献",
-        "username": "jiumooo"
-      },
-      {
         "id": "stats",
         "enabled": true,
         "title": "访问统计",
         "showPv": true,
         "showUv": true
+      },
+      {
+        "id": "ghchart",
+        "enabled": true,
+        "title": "GitHub 贡献",
+        "username": "jiumooo",
+        "position": "left"
       }
     ]
   },
@@ -67,7 +68,7 @@
   "widgets": {
     "backToTop": true,
     "darkToggle": true,
-    "darkTogglePos": "bottom-right",
+    "darkTogglePos": "top-right",
     "headerButtons": [],
     "busuanzi": false,
     "scrollReveal": true,
