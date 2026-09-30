@@ -37,11 +37,26 @@ window.DEFAULT_SITE_CONFIG = {
     avatarShape: 'circle',     /* circle 圆形 / square 方形 */
     intro: '这是我的个人博客，记录生活与代码。欢迎来到 Jiumo_blog。'
   },
+  layout: {
+    showSearch: true,          /* 首页是否显示搜索框 */
+    showSummary: true,         /* 文章卡片是否显示摘要 */
+    pageSize: 20               /* 首页每页显示文章数 */
+  },
   sidebar: {
     enabled: true,             /* 是否显示右侧模块 */
     sticky: true,              /* 是否固定不随页面上下滑动 */
-    title: '关于本站',
-    content: '这里可以放公告、简介、友情链接等内容。\n\n> 在后台「侧栏模块」中修改，支持 Markdown。'
+    modules: [                 /* 侧栏模块列表，可后台增删开关与排序 */
+      { id: 'about', enabled: true, title: '关于本站',
+        content: '这里可以放公告、简介、友情链接等内容。\n\n> 在后台「组件模块」中修改，支持 Markdown。' },
+      { id: 'datetime', enabled: true, title: '日期时间',
+        showDate: true, showTime: true, format12: false },
+      { id: 'weather', enabled: false, title: '天气',
+        city: '无锡', lat: 31.49, lon: 120.31, unit: 'celsius' },
+      { id: 'ghchart', enabled: false, title: 'GitHub 贡献',
+        username: 'Wineink' },
+      { id: 'stats', enabled: false, title: '访问统计',
+        showPv: true, showUv: false }
+    ]
   },
   appearance: {
     theme: 'light',            /* light 浅色 / dark 深色 / auto 跟随系统 */
@@ -102,12 +117,31 @@ function loadSiteConfigFile() {
     }
     return res.json();
   }).then(function (json) {
+    migrateSidebarConfig(json);
     SITE_CFG = deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), json);
     return SITE_CFG;
   }).catch(function () {
     SITE_CFG = JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG));
     return SITE_CFG;
   });
+}
+
+/* 兼容旧版 sidebar 配置：只有 title/content 时转成 modules 数组 */
+function migrateSidebarConfig(json) {
+  if (!json || !json.sidebar) {
+    return;
+  }
+  if (!json.sidebar.modules &&
+      (json.sidebar.content || json.sidebar.title)) {
+    json.sidebar.modules = [{
+      id: 'about',
+      enabled: true,
+      title: json.sidebar.title || '关于本站',
+      content: json.sidebar.content || ''
+    }];
+    delete json.sidebar.title;
+    delete json.sidebar.content;
+  }
 }
 
 /* 读取配置：默认配置与后台保存的配置合并 */
@@ -194,17 +228,23 @@ function listPostFiles() {
   });
 }
 
-/* 读取文章原文：优先走 raw（不占 API 限额），失败回退 Contents API（支持私有仓库） */
+/* 读取文章原文：优先走 raw（不占 API 限额），8 秒超时后回退 Contents API（支持私有仓库） */
 function getPostRaw(filename) {
   var c = getConfig();
   var rawUrl = 'https://raw.githubusercontent.com/' + c.owner + '/' + c.repo +
     '/' + c.branch + '/' + c.postsDir + '/' + filename;
-  return fetch(rawUrl).then(function (res) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function () {
+    ctrl.abort();
+  }, 8000);
+  return fetch(rawUrl, { signal: ctrl.signal }).then(function (res) {
+    clearTimeout(timer);
     if (!res.ok) {
       throw new Error('raw 加载失败：HTTP ' + res.status);
     }
     return res.text();
   }).catch(function () {
+    clearTimeout(timer);
     var path = '/repos/' + c.owner + '/' + c.repo + '/contents/' + c.postsDir +
       '/' + filename + '?ref=' + encodeURIComponent(c.branch);
     return apiRequest(path).then(function (data) {
@@ -271,6 +311,7 @@ function getSiteConfigMeta() {
     } catch (e) {
       cfg = null;
     }
+    migrateSidebarConfig(cfg);
     return {
       sha: data.sha,
       config: deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), cfg)
@@ -567,21 +608,13 @@ function applySiteConfig(cfg) {
     introEl.textContent = p.intro || '';
   }
 
-  /* 右侧侧栏模块 */
+  /* 右侧侧栏模块（多模块：关于/日期时间/天气/GitHub 贡献/访问统计） */
   var sbPanel = document.getElementById('sidebarPanel');
   if (sbPanel) {
     if (sb.enabled) {
       sbPanel.classList.remove('hidden');
       sbPanel.classList.toggle('sticky-panel', !!sb.sticky);
-      var sbTitle = document.getElementById('sidebarTitle');
-      if (sbTitle) {
-        sbTitle.textContent = sb.title || '';
-      }
-      var sbContent = document.getElementById('sidebarContent');
-      if (sbContent) {
-        sbContent.innerHTML = renderMarkdown(sb.content || '');
-        fixRelativeLinks(sbContent, getConfig().postsDir);
-      }
+      renderSidebarModules(cfg);
     } else {
       sbPanel.classList.add('hidden');
     }
@@ -606,6 +639,169 @@ function applySiteConfig(cfg) {
   if (pvWrap) {
     pvWrap.classList.toggle('hidden', !w.busuanzi);
   }
+}
+
+/* ------------------------------------------------------------
+ * 侧栏多模块渲染（关于/日期时间/天气/GitHub 贡献/访问统计）
+ * 模块列表、开关与参数全部来自后台「组件模块」配置
+ * ---------------------------------------------------------- */
+var _sidebarTimers = [];
+
+function clearSidebarTimers() {
+  _sidebarTimers.forEach(function (t) { clearInterval(t); clearTimeout(t); });
+  _sidebarTimers = [];
+}
+
+function renderSidebarModules(cfg) {
+  var container = document.getElementById('sidebarModules');
+  if (!container) {
+    return;
+  }
+  clearSidebarTimers();
+  var sb = cfg.sidebar || {};
+  var modules = (sb.modules || []).filter(function (m) { return m && m.enabled; });
+  if (!modules.length) {
+    container.innerHTML = '<div class="state-box" style="padding:20px 10px;">暂无启用的模块</div>';
+    return;
+  }
+  var html = modules.map(function (m) {
+    return '<div class="sidebar-module reveal" data-id="' + escapeHtml(m.id) + '">' +
+      '<h3>' + escapeHtml(m.title || '') + '</h3>' +
+      '<div class="module-body" data-id="' + escapeHtml(m.id) + '"></div>' +
+      '</div>';
+  }).join('');
+  container.innerHTML = html;
+
+  modules.forEach(function (m) {
+    var body = container.querySelector('.module-body[data-id="' + m.id + '"]');
+    if (!body) {
+      return;
+    }
+    if (m.id === 'about') {
+      body.innerHTML = renderMarkdown(m.content || '');
+      fixRelativeLinks(body, getConfig().postsDir);
+    } else if (m.id === 'datetime') {
+      renderDatetimeModule(body, m);
+    } else if (m.id === 'weather') {
+      renderWeatherModule(body, m);
+    } else if (m.id === 'ghchart') {
+      renderGhChartModule(body, m);
+    } else if (m.id === 'stats') {
+      renderStatsModule(body, m);
+    }
+  });
+}
+
+/* 日期时间模块 */
+function renderDatetimeModule(body, m) {
+  var pad2n = function (n) { return (n < 10 ? '0' : '') + n; };
+  var week = ['日', '一', '二', '三', '四', '五', '六'];
+  var render = function () {
+    var d = new Date();
+    var dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 星期' + week[d.getDay()];
+    var h = m.format12 ? (d.getHours() % 12 || 12) : d.getHours();
+    var ap = m.format12 ? (d.getHours() >= 12 ? ' 下午' : ' 上午') : '';
+    var timeStr = pad2n(h) + ':' + pad2n(d.getMinutes()) + ':' + pad2n(d.getSeconds()) + ap;
+    body.innerHTML =
+      (m.showDate !== false ? '<div class="dt-date">' + dateStr + '</div>' : '') +
+      (m.showTime !== false ? '<div class="dt-time">' + timeStr + '</div>' : '');
+  };
+  render();
+  _sidebarTimers.push(setInterval(render, 1000));
+}
+
+/* 天气模块（Open-Meteo 免费接口，无需密钥） */
+function renderWeatherModule(body, m) {
+  var codes = {
+    0: '晴', 1: '大致晴朗', 2: '多云', 3: '阴',
+    45: '雾', 48: '雾凇', 51: '小毛毛雨', 53: '毛毛雨', 55: '大毛毛雨',
+    61: '小雨', 63: '中雨', 65: '大雨', 66: '冻雨', 67: '强冻雨',
+    71: '小雪', 73: '中雪', 75: '大雪', 77: '雪粒',
+    80: '小阵雨', 81: '阵雨', 82: '强阵雨', 85: '小阵雪', 86: '强阵雪',
+    95: '雷暴', 96: '雷暴伴小冰雹', 99: '雷暴伴大冰雹'
+  };
+  body.innerHTML = '<div class="state-box" style="padding:16px 0;">天气加载中…</div>';
+  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' +
+    encodeURIComponent(m.lat || 0) + '&longitude=' + encodeURIComponent(m.lon || 0) +
+    '&current_weather=true&timezone=auto';
+  var ctrl = new AbortController();
+  var timer = setTimeout(function () { ctrl.abort(); }, 8000);
+  fetch(url, { signal: ctrl.signal }).then(function (res) {
+    clearTimeout(timer);
+    if (!res.ok) {
+      throw new Error('http ' + res.status);
+    }
+    return res.json();
+  }).then(function (data) {
+    var cw = data && data.current_weather;
+    if (!cw) {
+      throw new Error('no data');
+    }
+    var unit = m.unit === 'fahrenheit' ? '°F' : '°C';
+    var temp = m.unit === 'fahrenheit' ?
+      Math.round(cw.temperature * 9 / 5 + 32) : Math.round(cw.temperature);
+    body.innerHTML =
+      '<div class="weather-row"><span class="weather-emoji">' + weatherEmoji(cw.weathercode) +
+      '</span><span class="weather-temp">' + temp + unit + '</span></div>' +
+      '<div class="weather-desc">' + (codes[cw.weathercode] || '未知天气') +
+      (m.city ? ' · ' + escapeHtml(m.city) : '') + '</div>' +
+      '<div class="weather-extra">风速 ' + Math.round(cw.windspeed) + ' km/h</div>';
+  }).catch(function () {
+    clearTimeout(timer);
+    body.innerHTML = '<div class="state-box" style="padding:16px 0;">天气加载失败</div>';
+  });
+}
+
+function weatherEmoji(code) {
+  if (code === 0 || code === 1) return '☀️';
+  if (code === 2) return '⛅';
+  if (code === 3) return '☁️';
+  if (code >= 45 && code <= 48) return '🌫️';
+  if (code >= 51 && code <= 67) return '🌧️';
+  if (code >= 71 && code <= 77) return '❄️';
+  if (code >= 80 && code <= 82) return '🌦️';
+  if (code >= 85 && code <= 86) return '🌨️';
+  if (code >= 95) return '⛈️';
+  return '🌡️';
+}
+
+/* GitHub 贡献热力图模块（ghchart SVG 服务） */
+function renderGhChartModule(body, m) {
+  var user = (m.username || getConfig().owner).trim();
+  body.innerHTML = '<div class="ghchart-wrap"><img class="ghchart" alt="' +
+    escapeHtml(user) + ' 的 GitHub 贡献图" src="https://ghchart.rshah.org/' +
+    encodeURIComponent(user) + '" onerror="this.closest(\'.ghchart-wrap\').innerHTML=\'<div class=state-box style=padding:12px 0;>贡献图加载失败</div>\'"></div>' +
+    '<div class="ghchart-user">@' + escapeHtml(user) + '</div>';
+}
+
+/* 访问统计模块（复用不蒜子页脚数据） */
+function renderStatsModule(body, m) {
+  var html = '';
+  if (m.showPv !== false) {
+    html += '<div class="stat-row">全站浏览 <b class="stat-pv">-</b> 次</div>';
+  }
+  if (m.showUv) {
+    html += '<div class="stat-row">访客数 <b class="stat-uv">-</b> 人</div>';
+  }
+  body.innerHTML = html;
+  var tick = function () {
+    var pv = document.getElementById('busuanzi_value_site_pv');
+    var uv = document.getElementById('busuanzi_value_site_uv');
+    if (pv && m.showPv !== false) {
+      var el = body.querySelector('.stat-pv');
+      if (el && pv.textContent) {
+        el.textContent = pv.textContent;
+      }
+    }
+    if (uv && m.showUv) {
+      var el2 = body.querySelector('.stat-uv');
+      if (el2 && uv.textContent) {
+        el2.textContent = uv.textContent;
+      }
+    }
+  };
+  tick();
+  _sidebarTimers.push(setInterval(tick, 2500));
 }
 
 /* 按需加载外部脚本 */

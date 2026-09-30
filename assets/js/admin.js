@@ -1,18 +1,18 @@
 /* ============================================================
  * Jiumo_blog 管理后台逻辑
- * 登录验证 / 文章列表 / 新建编辑删除 / Markdown 预览 / 草稿
- * 站点设置（分类管理：仓库登录/基本信息/头像布局/侧栏模块/外观主题/组件模块/动画）
+ * 左侧分类导航：文章管理 / 仓库管理 / 页面管理 / 主题 / 组件模块 / 动画管理
+ * 设置暂存机制：所有面板可随意修改，最后点「应用所有设置」一次性保存
+ * 退出时如有未保存修改会提示；侧栏模块支持启用、参数、排序
  * ============================================================ */
 (function () {
   /* 视图容器 */
   var loginView = document.getElementById('loginView');
   var adminView = document.getElementById('adminView');
-  var listPanel = document.getElementById('listPanel');
-  var editorPanel = document.getElementById('editorPanel');
-  var settingsPanel = document.getElementById('settingsPanel');
   var adminList = document.getElementById('adminList');
+  var editorPanel = document.getElementById('editorPanel');
   var repoInfo = document.getElementById('repoInfo');
   var filenameBox = document.getElementById('filenameBox');
+  var viewTitle = document.getElementById('viewTitle');
 
   /* 编辑器元素 */
   var editTitle = document.getElementById('editTitle');
@@ -23,16 +23,30 @@
   var editBodyWrap = document.getElementById('editBodyWrap');
   var editPreview = document.getElementById('editPreview');
 
+  /* 视图名映射 */
+  var VIEW_NAMES = {
+    posts: '文章管理',
+    repo: '仓库管理',
+    pages: '页面管理',
+    theme: '主题',
+    widgets: '组件模块',
+    animation: '动画管理'
+  };
+
   var state = {
     posts: [],
     isNew: false,
     editing: null,
     draftTimer: null,
-    configSha: null
+    configSha: null,
+    draft: null,          /* 当前编辑中的站点配置副本 */
+    repoDraft: null,      /* 当前编辑中的仓库设置副本 */
+    dirty: false,
+    dirtyGroups: {}       /* 记录哪些分类有未保存修改 */
   };
 
   /* ----------------------------------------------------------
-   * 视图切换
+   * 登录 / 视图切换
    * -------------------------------------------------------- */
   function showLogin() {
     loginView.classList.remove('hidden');
@@ -44,15 +58,6 @@
     adminView.classList.remove('hidden');
   }
 
-  function showPanel(name) {
-    listPanel.classList.toggle('hidden', name !== 'list');
-    editorPanel.classList.toggle('hidden', name !== 'editor');
-    settingsPanel.classList.toggle('hidden', name !== 'settings');
-  }
-
-  /* ----------------------------------------------------------
-   * 登录
-   * -------------------------------------------------------- */
   function fillLoginForm() {
     var c = getConfig();
     document.getElementById('loginOwner').value =
@@ -103,8 +108,29 @@
     showAdmin();
     var c = getConfig();
     repoInfo.textContent = c.owner + '/' + c.repo + ' · 分支 ' + c.branch + ' · ' + user.login;
-    showPanel('list');
+    switchView('posts');
     loadPosts();
+    loadDraft();
+  }
+
+  /* ----------------------------------------------------------
+   * 左侧分类导航
+   * -------------------------------------------------------- */
+  var navItems = document.querySelectorAll('.admin-nav .nav-item[data-view]');
+  navItems.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchView(btn.getAttribute('data-view'));
+    });
+  });
+
+  function switchView(name) {
+    navItems.forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-view') === name);
+    });
+    document.querySelectorAll('.view-pane').forEach(function (p) {
+      p.classList.toggle('hidden', p.id !== 'view-' + name);
+    });
+    viewTitle.textContent = VIEW_NAMES[name] || name;
   }
 
   /* ----------------------------------------------------------
@@ -183,7 +209,6 @@
     return null;
   }
 
-  /* 删除文章 */
   function confirmDelete(name) {
     var p = findPost(name);
     var title = (p && p.meta.title) || name;
@@ -228,7 +253,7 @@
     state.editing = null;
     resetEditor();
     filenameBox.textContent = '新文章，保存时自动生成文件名：' + todayStr() + '-标题.md';
-    showPanel('editor');
+    editorPanel.classList.remove('hidden');
     tryRestoreDraft();
     editTitle.focus();
   });
@@ -245,13 +270,12 @@
       editBody.value = meta.body || '';
       filenameBox.textContent = '文件名：' + name + '（编辑时保持不变）';
       switchEditTab('edit');
-      showPanel('editor');
+      editorPanel.classList.remove('hidden');
     }).catch(function (err) {
       showToast('文章读取失败：' + err.message, 'error');
     });
   }
 
-  /* 编辑 / 预览 切换 */
   function switchEditTab(which) {
     var isEdit = which === 'edit';
     document.getElementById('tabEdit').classList.toggle('active', isEdit);
@@ -274,7 +298,6 @@
     switchEditTab('preview');
   });
 
-  /* 草稿自动保存（仅新建文章） */
   function scheduleDraft() {
     clearTimeout(state.draftTimer);
     state.draftTimer = setTimeout(saveDraft, 1500);
@@ -314,7 +337,6 @@
     el.addEventListener('input', scheduleDraft);
   });
 
-  /* 保存并发布 */
   document.getElementById('btnSave').addEventListener('click', function () {
     var f = collectForm();
     if (!f.title.trim()) {
@@ -347,7 +369,6 @@
     btn.disabled = true;
     btn.textContent = '保存中…';
 
-    /* 编辑已有文章前重新取最新 sha，避免冲突 */
     var prep = Promise.resolve();
     if (!state.isNew) {
       prep = getPostMeta(filename).then(function (m) {
@@ -363,7 +384,7 @@
       showToast('已保存，GitHub Pages 通常 1 分钟内生效', 'success');
       btn.disabled = false;
       btn.textContent = '保存并发布';
-      showPanel('list');
+      editorPanel.classList.add('hidden');
       loadPosts();
     }).catch(function (err) {
       btn.disabled = false;
@@ -377,138 +398,140 @@
   });
 
   document.getElementById('btnCancel').addEventListener('click', function () {
-    showPanel('list');
+    editorPanel.classList.add('hidden');
   });
 
   /* ----------------------------------------------------------
-   * 设置面板（仓库登录 + 分类站点配置）
+   * 设置暂存机制
+   * 表单改动即时写入 state.draft / state.repoDraft 并标记 dirty
+   * 点「应用所有设置」一次性提交
    * -------------------------------------------------------- */
-  /* 仓库设置：填充 / 保存（localStorage） */
-  function fillRepoSettings() {
-    var c = getConfig();
-    document.getElementById('setOwner').value = c.owner;
-    document.getElementById('setRepo').value = c.repo;
-    document.getElementById('setBranch').value = c.branch;
-    document.getElementById('setToken').value = c.token;
+  function markDirty(group) {
+    state.dirty = true;
+    state.dirtyGroups[group] = true;
+    document.getElementById('btnApplyAll').classList.add('dirty');
+    var nameToView = {
+      '文章管理': 'Posts', '仓库管理': 'Repo', '页面管理': 'Pages',
+      '主题': 'Theme', '组件模块': 'Widgets', '动画管理': 'Animation'
+    };
+    var nav = document.getElementById('nav' + nameToView[group]);
+    if (nav) {
+      nav.classList.add('has-dirty');
+    }
   }
 
-  /* 分类标签切换 */
-  function initSettingsTabs() {
-    var tabs = document.querySelectorAll('#settingsTabs button');
-    tabs.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        tabs.forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var panes = document.querySelectorAll('.settings-pane');
-        panes.forEach(function (p) {
-          p.classList.toggle('active', p.id === btn.getAttribute('data-pane'));
-        });
-      });
+  function clearDirty() {
+    state.dirty = false;
+    state.dirtyGroups = {};
+    document.getElementById('btnApplyAll').classList.remove('dirty');
+    document.querySelectorAll('.admin-nav .nav-item').forEach(function (b) {
+      b.classList.remove('has-dirty');
     });
   }
 
-  /* 从 site-config 填充站点设置表单 */
-  function fillConfigForm(cfg) {
-    cfg = cfg || {};
-    var site = cfg.site || {};
-    var profile = cfg.profile || {};
-    var sidebar = cfg.sidebar || {};
-    var appearance = cfg.appearance || {};
-    var widgets = cfg.widgets || {};
-    var anim = cfg.animation || {};
+  /* 收集站点配置表单到 state.draft */
+  function collectAllForms() {
+    var d = state.draft || {};
+    d.site = {
+      title: val('cfgSiteTitle'),
+      desc: val('cfgSiteDesc')
+    };
+    d.profile = {
+      showAvatar: checked('cfgShowAvatar'),
+      avatar: val('cfgAvatarUrl'),
+      avatarShape: val('cfgAvatarShape'),
+      intro: val('cfgProfileIntro')
+    };
+    d.layout = {
+      showSearch: checked('cfgShowSearch'),
+      showSummary: checked('cfgShowSummary'),
+      pageSize: parseInt(val('cfgPageSize'), 10) || 20
+    };
+    d.appearance = {
+      theme: val('cfgTheme'),
+      accent: val('cfgAccent'),
+      accentDark: val('cfgAccentDark'),
+      buttonStyle: val('cfgButtonStyle'),
+      radius: parseInt(val('cfgRadius'), 10) || 12,
+      fontSize: parseInt(val('cfgFontSize'), 10) || 16
+    };
+    d.widgets = d.widgets || {};
+    d.widgets.backToTop = checked('cfgWBackTop');
+    d.widgets.darkToggle = checked('cfgWDarkToggle');
+    d.widgets.busuanzi = checked('cfgWBusuanzi');
+    d.widgets.scrollReveal = checked('cfgWScrollReveal');
+    d.widgets.particles = checked('cfgWParticles');
+    d.widgets.particlesPreset = val('cfgWParticlesPreset');
+    d.widgets.typing = checked('cfgWTyping');
+    d.widgets.typingText = val('cfgWTypingText')
+      .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
+    d.widgets.utterances = {
+      enabled: checked('cfgUtterEnabled'),
+      repo: val('cfgUtterRepo'),
+      issueTerm: val('cfgUtterIssueTerm'),
+      theme: 'github-light'
+    };
+    d.widgets.gitalk = {
+      enabled: checked('cfgGitalkEnabled'),
+      clientID: val('cfgGitalkClientID'),
+      clientSecret: val('cfgGitalkClientSecret'),
+      repo: val('cfgGitalkRepo')
+    };
+    d.animation = { speed: val('cfgAnimSpeed') };
+    d.sidebar = d.sidebar || {};
+    d.sidebar.enabled = checked('cfgSidebarEnabled');
+    d.sidebar.sticky = checked('cfgSidebarSticky');
+    /* modules 由模块卡片管理，collect 时保持现状 */
+    return d;
+  }
+
+  /* 填充全部站点配置表单 */
+  function fillAllForms(d) {
+    d = d || {};
+    var site = d.site || {};
+    var p = d.profile || {};
+    var lay = d.layout || {};
+    var a = d.appearance || {};
+    var w = d.widgets || {};
+    var sb = d.sidebar || {};
+    var anim = d.animation || {};
 
     setVal('cfgSiteTitle', site.title);
     setVal('cfgSiteDesc', site.desc);
-    setVal('cfgShowAvatar', profile.showAvatar);
-    setVal('cfgAvatarUrl', profile.avatar);
-    setVal('cfgAvatarShape', profile.avatarShape);
-    setVal('cfgProfileIntro', profile.intro);
-    setVal('cfgSidebarEnabled', sidebar.enabled);
-    setVal('cfgSidebarSticky', sidebar.sticky);
-    setVal('cfgSidebarTitle', sidebar.title);
-    setVal('cfgSidebarContent', sidebar.content);
-    setVal('cfgTheme', appearance.theme);
-    setVal('cfgAccent', appearance.accent);
-    setVal('cfgAccentDark', appearance.accentDark);
-    setVal('cfgButtonStyle', appearance.buttonStyle);
-    setVal('cfgRadius', appearance.radius);
-    setVal('cfgFontSize', appearance.fontSize);
-    setVal('cfgWBackTop', widgets.backToTop);
-    setVal('cfgWDarkToggle', widgets.darkToggle);
-    setVal('cfgWBusuanzi', widgets.busuanzi);
-    setVal('cfgWScrollReveal', widgets.scrollReveal);
-    setVal('cfgWParticles', widgets.particles);
-    setVal('cfgWParticlesPreset', widgets.particlesPreset);
-    setVal('cfgWTyping', widgets.typing);
-    setVal('cfgWTypingText',
-      (widgets.typingText || []).join(';'));
-    var utt = widgets.utterances || {};
+    setVal('cfgShowAvatar', p.showAvatar);
+    setVal('cfgAvatarUrl', p.avatar);
+    setVal('cfgAvatarShape', p.avatarShape);
+    setVal('cfgProfileIntro', p.intro);
+    setVal('cfgShowSearch', lay.showSearch);
+    setVal('cfgShowSummary', lay.showSummary);
+    setVal('cfgPageSize', lay.pageSize);
+    setVal('cfgTheme', a.theme);
+    setVal('cfgAccent', a.accent);
+    setVal('cfgAccentDark', a.accentDark);
+    setVal('cfgButtonStyle', a.buttonStyle);
+    setVal('cfgRadius', a.radius);
+    setVal('cfgFontSize', a.fontSize);
+    setVal('cfgWBackTop', w.backToTop);
+    setVal('cfgWDarkToggle', w.darkToggle);
+    setVal('cfgWBusuanzi', w.busuanzi);
+    setVal('cfgWScrollReveal', w.scrollReveal);
+    setVal('cfgWParticles', w.particles);
+    setVal('cfgWParticlesPreset', w.particlesPreset);
+    setVal('cfgWTyping', w.typing);
+    setVal('cfgWTypingText', (w.typingText || []).join(';'));
+    var utt = w.utterances || {};
     setVal('cfgUtterEnabled', utt.enabled);
     setVal('cfgUtterRepo', utt.repo);
     setVal('cfgUtterIssueTerm', utt.issueTerm);
-    var gk = widgets.gitalk || {};
+    var gk = w.gitalk || {};
     setVal('cfgGitalkEnabled', gk.enabled);
     setVal('cfgGitalkClientID', gk.clientID);
     setVal('cfgGitalkClientSecret', gk.clientSecret);
     setVal('cfgGitalkRepo', gk.repo);
     setVal('cfgAnimSpeed', anim.speed);
-  }
-
-  /* 从站点设置表单收集配置对象 */
-  function collectConfigForm() {
-    var typingText = val('cfgWTypingText')
-      .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
-    return {
-      site: {
-        title: val('cfgSiteTitle'),
-        desc: val('cfgSiteDesc')
-      },
-      profile: {
-        showAvatar: checked('cfgShowAvatar'),
-        avatar: val('cfgAvatarUrl'),
-        avatarShape: val('cfgAvatarShape'),
-        intro: val('cfgProfileIntro')
-      },
-      sidebar: {
-        enabled: checked('cfgSidebarEnabled'),
-        sticky: checked('cfgSidebarSticky'),
-        title: val('cfgSidebarTitle'),
-        content: val('cfgSidebarContent')
-      },
-      appearance: {
-        theme: val('cfgTheme'),
-        accent: val('cfgAccent'),
-        accentDark: val('cfgAccentDark'),
-        buttonStyle: val('cfgButtonStyle'),
-        radius: parseInt(val('cfgRadius'), 10) || 12,
-        fontSize: parseInt(val('cfgFontSize'), 10) || 16
-      },
-      widgets: {
-        backToTop: checked('cfgWBackTop'),
-        darkToggle: checked('cfgWDarkToggle'),
-        busuanzi: checked('cfgWBusuanzi'),
-        scrollReveal: checked('cfgWScrollReveal'),
-        particles: checked('cfgWParticles'),
-        particlesPreset: val('cfgWParticlesPreset'),
-        typing: checked('cfgWTyping'),
-        typingText: typingText,
-        utterances: {
-          enabled: checked('cfgUtterEnabled'),
-          repo: val('cfgUtterRepo'),
-          issueTerm: val('cfgUtterIssueTerm'),
-          theme: 'github-light'
-        },
-        gitalk: {
-          enabled: checked('cfgGitalkEnabled'),
-          clientID: val('cfgGitalkClientID'),
-          clientSecret: val('cfgGitalkClientSecret'),
-          repo: val('cfgGitalkRepo')
-        }
-      },
-      animation: {
-        speed: val('cfgAnimSpeed')
-      }
-    };
+    setVal('cfgSidebarEnabled', sb.enabled);
+    setVal('cfgSidebarSticky', sb.sticky);
+    renderModulesList();
   }
 
   function val(id) {
@@ -533,88 +556,337 @@
     return el ? el.checked : false;
   }
 
-  /* 打开设置面板：填仓库设置 + 从远端加载站点配置 */
-  document.getElementById('btnSettings').addEventListener('click', function () {
-    fillRepoSettings();
-    showPanel('settings');
+  /* 加载远端配置到草稿与表单 */
+  function loadDraft() {
     getSiteConfigMeta().then(function (res) {
       state.configSha = res.sha;
-      fillConfigForm(res.config);
-      /* 应用主题与外观到后台，便于预览效果 */
-      applyAppearance(res.config);
+      state.draft = res.config;
+      state.repoDraft = {
+        owner: getConfig().owner,
+        repo: getConfig().repo,
+        branch: getConfig().branch,
+        token: getConfig().token
+      };
+      fillRepoForm();
+      fillAllForms(state.draft);
+      applyAppearance(state.draft);
       applyTheme();
     }).catch(function () {
-      fillConfigForm(SITE_CFG);
       state.configSha = null;
+      state.draft = JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG));
+      fillAllForms(state.draft);
     });
-  });
+  }
 
-  /* 保存仓库设置（localStorage） */
-  document.getElementById('btnSaveRepo').addEventListener('click', function () {
-    var s = {
-      owner: document.getElementById('setOwner').value.trim(),
-      repo: document.getElementById('setRepo').value.trim(),
-      branch: document.getElementById('setBranch').value.trim(),
-      token: document.getElementById('setToken').value.trim()
-    };
-    if (!s.owner || !s.repo || !s.branch || !s.token) {
-      showToast('请填写完整仓库信息', 'error');
+  /* 仓库表单 */
+  function fillRepoForm() {
+    if (!state.repoDraft) {
       return;
     }
-    saveSettings(s);
-    apiRequest('/user').then(function (user) {
-      showToast('仓库设置已保存', 'success');
-      enterApp(user);
-    }).catch(function (err) {
-      showToast('Token 验证失败：' + err.message, 'error');
-    });
-  });
+    setVal('setOwner', state.repoDraft.owner);
+    setVal('setRepo', state.repoDraft.repo);
+    setVal('setBranch', state.repoDraft.branch);
+    setVal('setToken', state.repoDraft.token);
+  }
 
-  /* 保存站点配置（推送到仓库根 site-config.json） */
-  document.getElementById('btnSaveConfig').addEventListener('click', function () {
-    var cfg = collectConfigForm();
-    var btn = document.getElementById('btnSaveConfig');
-    btn.disabled = true;
-    btn.textContent = '保存中…';
-    /* 保存前重新读取远端 sha，避免覆盖他人修改 */
-    getSiteConfigMeta().then(function (res) {
-      return saveSiteConfig(cfg, res.sha);
-    }).then(function () {
-      state.configSha = null;
-      btn.disabled = false;
-      btn.textContent = '保存站点配置';
-      showToast('站点配置已保存，Pages 约 1 分钟后生效', 'success');
-      SITE_CFG = deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), cfg);
-      applyAppearance(SITE_CFG);
-      applyTheme();
-    }).catch(function (err) {
-      btn.disabled = false;
-      btn.textContent = '保存站点配置';
-      showToast('保存失败：' + err.message, 'error');
-    });
-  });
+  /* 绑定所有设置表单的 change 事件（按所在分类分组，导航红点更准确） */
+  var FORM_GROUPS = {
+    'cfgSiteTitle': '页面管理', 'cfgSiteDesc': '页面管理',
+    'cfgShowAvatar': '页面管理', 'cfgAvatarUrl': '页面管理',
+    'cfgAvatarShape': '页面管理', 'cfgProfileIntro': '页面管理',
+    'cfgShowSearch': '页面管理', 'cfgShowSummary': '页面管理', 'cfgPageSize': '页面管理',
+    'cfgTheme': '主题', 'cfgAccent': '主题', 'cfgAccentDark': '主题',
+    'cfgButtonStyle': '主题', 'cfgRadius': '主题', 'cfgFontSize': '主题',
+    'cfgWBackTop': '主题', 'cfgWDarkToggle': '主题',
+    'cfgWBusuanzi': '组件模块',
+    'cfgUtterEnabled': '组件模块', 'cfgUtterRepo': '组件模块', 'cfgUtterIssueTerm': '组件模块',
+    'cfgGitalkEnabled': '组件模块', 'cfgGitalkClientID': '组件模块',
+    'cfgGitalkClientSecret': '组件模块', 'cfgGitalkRepo': '组件模块',
+    'cfgSidebarEnabled': '组件模块', 'cfgSidebarSticky': '组件模块',
+    'cfgWScrollReveal': '动画管理', 'cfgAnimSpeed': '动画管理',
+    'cfgWParticles': '动画管理', 'cfgWParticlesPreset': '动画管理',
+    'cfgWTyping': '动画管理', 'cfgWTypingText': '动画管理'
+  };
 
-  document.getElementById('btnBackFromSet').addEventListener('click', function () {
-    showPanel('list');
+  function bindConfigForms() {
+    Object.keys(FORM_GROUPS).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) {
+        return;
+      }
+      el.addEventListener('change', function () {
+        state.draft = collectAllForms();
+        applyAppearance(state.draft);
+        applyTheme();
+        markDirty(FORM_GROUPS[id]);
+      });
+    });
+  }
+
+  /* 仓库字段绑定 */
+  ['setOwner', 'setRepo', 'setBranch', 'setToken'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', function () {
+        if (!state.repoDraft) {
+          return;
+        }
+        state.repoDraft.owner = val('setOwner');
+        state.repoDraft.repo = val('setRepo');
+        state.repoDraft.branch = val('setBranch');
+        state.repoDraft.token = val('setToken');
+        markDirty('仓库管理');
+      });
+    }
   });
 
   /* ----------------------------------------------------------
-   * 登出
+   * 侧栏模块管理（组件模块面板）
    * -------------------------------------------------------- */
-  document.getElementById('btnLogout').addEventListener('click', function () {
-    if (!window.confirm('确定登出？本浏览器保存的 Token 将被清除。')) {
+  var MODULE_FIELDS = {
+    about: [
+      { key: 'title', label: '模块标题', type: 'text' },
+      { key: 'content', label: '内容（支持 Markdown）', type: 'textarea', rows: 4 }
+    ],
+    datetime: [
+      { key: 'title', label: '模块标题', type: 'text' },
+      { key: 'showDate', label: '显示日期', type: 'checkbox' },
+      { key: 'showTime', label: '显示时间', type: 'checkbox' },
+      { key: 'format12', label: '12 小时制', type: 'checkbox' }
+    ],
+    weather: [
+      { key: 'title', label: '模块标题', type: 'text' },
+      { key: 'city', label: '城市名', type: 'text' },
+      { key: 'lat', label: '纬度', type: 'number', step: '0.0001' },
+      { key: 'lon', label: '经度', type: 'number', step: '0.0001' },
+      { key: 'unit', label: '温度单位', type: 'select',
+        options: [['celsius', '摄氏度'], ['fahrenheit', '华氏度']] }
+    ],
+    ghchart: [
+      { key: 'title', label: '模块标题', type: 'text' },
+      { key: 'username', label: 'GitHub 用户名', type: 'text' }
+    ],
+    stats: [
+      { key: 'title', label: '模块标题', type: 'text' },
+      { key: 'showPv', label: '显示全站浏览', type: 'checkbox' },
+      { key: 'showUv', label: '显示访客数', type: 'checkbox' }
+    ]
+  };
+
+  function renderModulesList() {
+    var wrap = document.getElementById('modulesList');
+    if (!wrap || !state.draft) {
       return;
     }
-    clearSettings();
-    location.reload();
+    var mods = (state.draft.sidebar && state.draft.sidebar.modules) || [];
+    wrap.innerHTML = mods.map(function (m, idx) {
+      var fields = MODULE_FIELDS[m.id] || [];
+      var body = fields.map(function (f) {
+        var inputId = 'mod_' + m.id + '_' + f.key;
+        if (f.type === 'checkbox') {
+          return '<div class="form-row" style="margin-bottom:8px;">' +
+            '<label><input type="checkbox" data-mod="' + m.id + '" data-key="' + f.key +
+            '" id="' + inputId + '"' + (m[f.key] ? ' checked' : '') + '> ' +
+            escapeHtml(f.label) + '</label></div>';
+        }
+        if (f.type === 'select') {
+          var opts = (f.options || []).map(function (o) {
+            return '<option value="' + o[0] + '"' + (String(m[f.key]) === o[0] ? ' selected' : '') +
+              '>' + escapeHtml(o[1]) + '</option>';
+          }).join('');
+          return '<div class="form-row" style="margin-bottom:8px;"><label>' +
+            escapeHtml(f.label) + '</label><select data-mod="' + m.id +
+            '" data-key="' + f.key + '" id="' + inputId + '">' + opts + '</select></div>';
+        }
+        if (f.type === 'textarea') {
+          return '<div class="form-row" style="margin-bottom:8px;"><label>' +
+            escapeHtml(f.label) + '</label><textarea rows="' + (f.rows || 3) +
+            '" data-mod="' + m.id + '" data-key="' + f.key + '" id="' + inputId +
+            '">' + escapeHtml(m[f.key] || '') + '</textarea></div>';
+        }
+        return '<div class="form-row" style="margin-bottom:8px;"><label>' +
+          escapeHtml(f.label) + '</label><input type="' + (f.type || 'text') +
+          '" data-mod="' + m.id + '" data-key="' + f.key + '" id="' + inputId +
+          '" value="' + escapeHtml(m[f.key] == null ? '' : m[f.key]) + '"' +
+          (f.step ? ' step="' + f.step + '"' : '') + '></div>';
+      }).join('');
+      return '<div class="mod-card" data-id="' + m.id + '">' +
+        '<div class="mod-head">' +
+          '<label class="mod-name"><input type="checkbox" class="mod-enabled" data-mod="' +
+            m.id + '"' + (m.enabled ? ' checked' : '') + '> ' +
+            escapeHtml(m.title || m.id) + ' <span class="mod-badge">' + m.id + '</span></label>' +
+          '<div class="mod-actions">' +
+            '<button class="btn btn-ghost btn-sm mod-arrow" data-move="up" data-idx="' + idx +
+            '" title="上移">↑</button>' +
+            '<button class="btn btn-ghost btn-sm mod-arrow" data-move="down" data-idx="' + idx +
+            '" title="下移">↓</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="mod-body">' + body + '</div>' +
+      '</div>';
+    }).join('') ||
+      '<div class="state-box" style="padding:20px 0;">暂无模块</div>';
+  }
+
+  document.getElementById('modulesList').addEventListener('change', function (e) {
+    var t = e.target;
+    if (!state.draft || !t.dataset) {
+      return;
+    }
+    var mods = (state.draft.sidebar && state.draft.sidebar.modules) || [];
+    var mod = null;
+    for (var i = 0; i < mods.length; i++) {
+      if (mods[i].id === t.dataset.mod) {
+        mod = mods[i];
+        break;
+      }
+    }
+    if (!mod) {
+      return;
+    }
+    if (t.classList.contains('mod-enabled')) {
+      mod.enabled = t.checked;
+    } else if (t.dataset.key) {
+      mod[t.dataset.key] = t.type === 'checkbox' ? t.checked :
+        (t.type === 'number' ? parseFloat(t.value) : t.value);
+    }
+    markDirty('组件模块');
   });
+
+  document.getElementById('modulesList').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-move]');
+    if (!btn || !state.draft) {
+      return;
+    }
+    var mods = (state.draft.sidebar && state.draft.sidebar.modules) || [];
+    var idx = parseInt(btn.getAttribute('data-idx'), 10);
+    var dir = btn.getAttribute('data-move') === 'up' ? -1 : 1;
+    var ni = idx + dir;
+    if (idx < 0 || ni < 0 || ni >= mods.length) {
+      return;
+    }
+    var tmp = mods[idx];
+    mods[idx] = mods[ni];
+    mods[ni] = tmp;
+    renderModulesList();
+    markDirty('组件模块');
+  });
+
+  /* ----------------------------------------------------------
+   * 应用所有设置
+   * -------------------------------------------------------- */
+  document.getElementById('btnApplyAll').addEventListener('click', function () {
+    if (!state.dirty) {
+      showToast('当前没有未保存的修改', '');
+      return;
+    }
+    var btn = document.getElementById('btnApplyAll');
+    btn.disabled = true;
+    btn.textContent = '保存中…';
+
+    /* 仓库设置（本地）与站点配置（远端）分别保存 */
+    var repoChanged = !!state.dirtyGroups['仓库管理'];
+    var siteChanged = !!state.draft;
+
+    function afterRepo() {
+      var d = state.draft;
+      var save = getSiteConfigMeta().then(function (res) {
+        state.configSha = res.sha;
+        return saveSiteConfig(d, res.sha);
+      });
+      save.then(function () {
+        btn.disabled = false;
+        btn.textContent = '应用所有设置';
+        clearDirty();
+        showToast('所有设置已保存，Pages 约 1 分钟后生效', 'success');
+        SITE_CFG = deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), d);
+        applyAppearance(SITE_CFG);
+        applyTheme();
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = '应用所有设置';
+        showToast('保存失败：' + err.message, 'error');
+      });
+    }
+
+    if (repoChanged) {
+      var s = state.repoDraft;
+      saveSettings({
+        owner: (s.owner || '').trim(),
+        repo: (s.repo || '').trim(),
+        branch: (s.branch || '').trim(),
+        token: (s.token || '').trim()
+      });
+      apiRequest('/user').then(function () {
+        afterRepo();
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = '应用所有设置';
+        showToast('仓库 Token 验证失败：' + err.message, 'error');
+      });
+    } else {
+      afterRepo();
+    }
+  });
+
+  /* 退出提示：有未保存修改时提醒 */
+  window.addEventListener('beforeunload', function (e) {
+    if (state.dirty) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
+
+  /* 点博客首页/登出时若 dirty 先提示 */
+  function guardExit(cb) {
+    if (state.dirty) {
+      var names = Object.keys(state.dirtyGroups).join('、') || '设置';
+      if (!window.confirm('有未保存的修改（' + names + '），确定不保存就离开吗？\n点「取消」回到后台继续编辑。')) {
+        return;
+      }
+    }
+    cb();
+  }
+
+  document.getElementById('btnLogout').addEventListener('click', function () {
+    guardExit(function () {
+      clearSettings();
+      location.reload();
+    });
+  });
+
+  document.getElementById('btnLogoutTop').addEventListener('click', function () {
+    guardExit(function () {
+      clearSettings();
+      location.reload();
+    });
+  });
+
+  /* 页面顶部「博客首页」链接也需要拦截 —— 用事件捕获替代默认跳转 */
+  document.querySelectorAll('.admin-nav a[href="../index.html"], .admin-topbar a[href="../index.html"]')
+    .forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        if (!state.dirty) {
+          return;
+        }
+        e.preventDefault();
+        var names = Object.keys(state.dirtyGroups).join('、') || '设置';
+        if (window.confirm('有未保存的修改（' + names + '），确定不保存就离开吗？\n点「确定」前往首页，点「取消」回到后台。')) {
+          window.location.href = a.getAttribute('href');
+        }
+      });
+    });
+
+  /* ----------------------------------------------------------
+   * 登出（登录视图隐藏时的兜底）
+   * -------------------------------------------------------- */
 
   /* ----------------------------------------------------------
    * 启动
    * -------------------------------------------------------- */
-  initSettingsTabs();
+  bindConfigForms();
   loadSiteConfigFile().then(function (cfg) {
-    /* 后台应用主题与外观（配合右下角深浅色按钮） */
     applyAppearance(cfg);
     applyTheme();
     if (window.initJiumoUI) {

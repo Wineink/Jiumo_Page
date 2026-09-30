@@ -40,6 +40,13 @@
     }
     var searchEl = document.getElementById('searchBox');
     document.title = (SITE_CFG.site && SITE_CFG.site.title) || cfg.siteTitle;
+    var layout = SITE_CFG.layout || {};
+    var showSearch = layout.showSearch !== false;
+    var showSummary = layout.showSummary !== false;
+    var pageSize = parseInt(layout.pageSize, 10) || 20;
+    if (searchEl) {
+      searchEl.classList.toggle('hidden', !showSearch);
+    }
     var allPosts = [];
 
     function renderList(posts) {
@@ -48,7 +55,8 @@
           '<div class="state-box">没有匹配的文章。可去 <a href="admin/">管理后台</a> 发布第一篇。</div>';
         return;
       }
-      listEl.innerHTML = posts.map(function (p, i) {
+      var shown = posts.slice(0, pageSize);
+      listEl.innerHTML = shown.map(function (p, i) {
         var meta = p.meta;
         var summary = meta.summary || makeSummary(meta.body);
         return '<a class="post-card reveal" style="transition-delay:' +
@@ -57,9 +65,13 @@
           '<h2>' + escapeHtml(meta.title || p.file.name) + '</h2>' +
           '<div class="post-meta"><span>' + escapeHtml(meta.date || '') +
           '</span> ' + tagsHtml(meta.tags) + '</div>' +
-          (summary ? '<p class="post-summary">' + escapeHtml(summary) + '</p>' : '') +
+          (showSummary && summary ? '<p class="post-summary">' + escapeHtml(summary) + '</p>' : '') +
           '</a>';
-      }).join('');
+      }).join('') +
+        (posts.length > pageSize
+          ? '<div class="state-box">共 ' + posts.length + ' 篇，仅显示前 ' + pageSize +
+            ' 篇（可在后台「页面管理」调整）</div>'
+          : '');
     }
 
     function filterPosts(kw) {

@@ -9,11 +9,52 @@
     "avatarShape": "circle",
     "intro": "欢迎来到 Jiumo_blog。"
   },
+  "layout": {
+    "showSearch": true,
+    "showSummary": true,
+    "pageSize": 20
+  },
   "sidebar": {
     "enabled": true,
     "sticky": true,
-    "title": "关于本站",
-    "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「侧栏模块」中修改，支持 Markdown。"
+    "modules": [
+      {
+        "id": "about",
+        "enabled": true,
+        "title": "关于本站",
+        "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「组件模块」中修改，支持 Markdown。"
+      },
+      {
+        "id": "datetime",
+        "enabled": true,
+        "title": "日期时间",
+        "showDate": true,
+        "showTime": true,
+        "format12": false
+      },
+      {
+        "id": "weather",
+        "enabled": false,
+        "title": "天气",
+        "city": "无锡",
+        "lat": 31.49,
+        "lon": 120.31,
+        "unit": "celsius"
+      },
+      {
+        "id": "ghchart",
+        "enabled": false,
+        "title": "GitHub 贡献",
+        "username": "Wineink"
+      },
+      {
+        "id": "stats",
+        "enabled": false,
+        "title": "访问统计",
+        "showPv": true,
+        "showUv": false
+      }
+    ]
   },
   "appearance": {
     "theme": "light",

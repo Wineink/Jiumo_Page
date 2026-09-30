@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>文章 - 墨迹博客</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=1">
+  <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
   <header class="site-header">
@@ -28,6 +28,7 @@
           <img id="profileAvatar" class="avatar shape-circle" alt="头像" src="">
           <h2 class="profile-name" id="profileName"></h2>
           <p class="profile-intro" id="profileIntro"></p>
+          <p class="profile-typing"><span id="typedTarget"></span></p>
         </div>
       </aside>
 
@@ -44,13 +45,10 @@
         </div>
       </div>
 
-      <!-- 右栏：侧栏模块（可后台配置、默认固定） -->
+      <!-- 右栏：侧栏模块（多模块，可后台配置启用/参数/排序） -->
       <aside class="layout-right">
         <div class="sidebar-panel" id="sidebarPanel">
-          <div class="panel">
-            <h3 id="sidebarTitle"></h3>
-            <div class="panel-body" id="sidebarContent"></div>
-          </div>
+          <div class="sidebar-modules" id="sidebarModules"></div>
         </div>
       </aside>
 
@@ -70,10 +68,10 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="assets/js/config.js?v=1"></script>
-  <script src="assets/vendor/marked.min.js?v=1"></script>
-  <script src="assets/js/ui.js?v=1"></script>
-  <script src="assets/js/blog.js?v=1"></script>
+  <script src="assets/js/config.js?v=2"></script>
+  <script src="assets/vendor/marked.min.js?v=2"></script>
+  <script src="assets/js/ui.js?v=2"></script>
+  <script src="assets/js/blog.js?v=2"></script>
   <!-- 不蒜子浏览量统计（后台可开关） -->
   <script src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>

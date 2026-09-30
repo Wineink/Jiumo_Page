@@ -78,22 +78,23 @@ a:hover {
 }
 
 .container {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 28px;
 }
 
 /* ============================================================
  * 三栏自适应布局
  * 左栏：头像 + 博客介绍（profile）
  * 中栏：主要内容（文章列表 / 文章详情）
- * 右栏：侧栏模块（可配置、默认固定不随页面滑动）
+ * 右栏：侧栏多模块（可配置、默认固定不随页面滑动）
  * 窄屏时自动折叠为单栏
  * ============================================================ */
 .layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 280px;
-  gap: 24px;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  gap: 28px;
   align-items: start;
 }
 
@@ -205,37 +206,122 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
- * 右侧侧栏模块
+ * 右侧侧栏模块（多模块：关于/日期时间/天气/GitHub 贡献/统计）
  * ---------------------------------------------------------- */
-.sidebar-panel .panel {
-  margin-bottom: 0;
+.sidebar-module {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
 }
 
-.sidebar-panel h3 {
+.sidebar-module h3 {
   margin: 0 0 12px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
 
-.sidebar-panel .panel-body {
+.module-body {
   font-size: 14px;
   color: var(--text);
   line-height: 1.8;
 }
 
-.sidebar-panel .panel-body p {
+.module-body p {
   margin: 0.6em 0;
 }
 
-.sidebar-panel .panel-body blockquote {
+.module-body blockquote {
   margin: 0.8em 0;
   padding: 0.3em 1em;
   border-left: 3px solid var(--accent);
   background: var(--accent-soft);
   border-radius: 0 6px 6px 0;
   font-size: 13px;
+}
+
+.module-body ul,
+.module-body ol {
+  padding-left: 1.3em;
+  margin: 0.6em 0;
+}
+
+/* 日期时间模块 */
+.dt-date {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.dt-time {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* 天气模块 */
+.weather-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.weather-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.weather-temp {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.weather-desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.weather-extra {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* GitHub 贡献热力图 */
+.ghchart-wrap {
+  text-align: center;
+}
+
+.ghchart {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+}
+
+.ghchart-user {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 访问统计模块 */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.stat-row b {
+  color: var(--accent);
 }
 
 /* ------------------------------------------------------------
@@ -248,9 +334,9 @@ a:hover {
 }
 
 .site-header .inner {
-  max-width: 1200px;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -565,12 +651,97 @@ html[data-theme="dark"] .post-article code {
 }
 
 /* ------------------------------------------------------------
- * 后台通用
+ * 后台通用（左侧导航 + 内容区铺满）
  * ---------------------------------------------------------- */
-.admin-wrap {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 20px 60px;
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.admin-nav {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 20px 14px 40px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.admin-nav .nav-brand {
+  font-size: 17px;
+  font-weight: 700;
+  padding: 4px 10px 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+.admin-nav .nav-brand small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.admin-nav .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-nav .nav-item:hover {
+  background: var(--code-bg);
+}
+
+.admin-nav .nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.admin-nav .nav-item .nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  display: none;
+  flex-shrink: 0;
+}
+
+.admin-nav .nav-item.has-dirty .nav-dot {
+  display: inline-block;
+}
+
+.admin-nav .nav-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 8px;
+}
+
+.admin-content {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 32px 80px;
+}
+
+.admin-content .panel {
+  max-width: 1100px;
 }
 
 .admin-topbar {
@@ -578,7 +749,7 @@ html[data-theme="dark"] .post-article code {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 24px 0;
+  padding: 4px 0 24px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 28px;
   flex-wrap: wrap;
@@ -592,6 +763,55 @@ html[data-theme="dark"] .post-article code {
 .admin-topbar .repo-info {
   font-size: 13px;
   color: var(--muted);
+  margin-top: 4px;
+}
+
+/* 应用所有设置按钮（有未保存更改时高亮） */
+#btnApplyAll {
+  position: relative;
+}
+
+#btnApplyAll.dirty {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+#btnApplyAll .apply-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  padding: 0 4px;
+  display: none;
+}
+
+#btnApplyAll.dirty .apply-badge {
+  display: inline-block;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
+}
+
+/* 登录视图：全屏居中 */
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.login-shell .panel {
+  width: 100%;
+  max-width: 620px;
 }
 
 .panel {
@@ -851,8 +1071,61 @@ html[data-theme="dark"] .post-article code {
 }
 
 /* ------------------------------------------------------------
- * 后台设置分类标签
+ * 侧栏模块管理卡片（后台组件模块）
  * ---------------------------------------------------------- */
+.mod-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  background: var(--bg);
+}
+
+.mod-card .mod-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mod-card .mod-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 650;
+  font-size: 14px;
+}
+
+.mod-card .mod-badge {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  background: var(--code-bg);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+
+.mod-card .mod-body {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.mod-card .mod-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mod-arrow {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 13px;
+  border-radius: 7px;
+}
+
+/* 后台设置分类标签（旧版兼容保留） */
 .settings-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -945,10 +1218,18 @@ html[data-theme="dark"] .post-article code {
 }
 
 .layout,
-.site-header .inner,
-.site-footer {
+.site-header .inner {
   position: relative;
   z-index: 1;
+}
+
+/* 页脚固定在浏览器窗口底部（高特异性，确保不被其他规则覆盖） */
+.site-footer.site-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
 }
 
 /* ------------------------------------------------------------
@@ -991,6 +1272,44 @@ html[data-theme="dark"] .post-article code {
 /* ------------------------------------------------------------
  * 响应式
  * ---------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .admin-nav {
+    width: 200px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-nav {
+    width: 100%;
+    height: auto;
+    position: static;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .admin-nav .nav-brand {
+    display: none;
+  }
+
+  .admin-nav .nav-item {
+    width: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .admin-content {
+    padding: 20px 16px 80px;
+  }
+}
+
 @media (max-width: 640px) {
   .site-header {
     padding: 28px 0 18px;
