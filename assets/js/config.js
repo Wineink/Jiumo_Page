@@ -269,10 +269,49 @@ function listPostFiles() {
   });
 }
 
-/* 读取文章原文：优先走 raw（不占 API 限额），加时间戳绕过 raw CDN 缓存，
- * 保证发布/撤回后前台立即读到最新内容；5 秒超时后回退 Contents API（支持私有仓库） */
+/* 读取文章原文：
+ * - 浏览器已登录后台（localStorage 有 Token）时优先走 GitHub Contents API，
+ *   Accept: application/vnd.github.raw 直接返回原文——API 实时无 CDN 缓存，
+ *   发布/撤回后刷新即见最新状态（认证配额 5000 次/小时，足够用）；
+ * - 未登录的访客走 raw + 时间戳（不占 API 限额，raw CDN 约 1 分钟内同步）；
+ * 任一路径失败自动回退另一条，5 秒超时，保证文章总能读到。 */
 function getPostRaw(filename) {
   var c = getConfig();
+  var token = readAdminToken();
+  if (token) {
+    return apiGetRaw(c, filename, token).catch(function () {
+      return rawGetRaw(c, filename);
+    });
+  }
+  return rawGetRaw(c, filename).catch(function () {
+    return apiGetRaw(c, filename, '');
+  });
+}
+
+/* Contents API 直接读原文（带可选 Token，实时无缓存） */
+function apiGetRaw(c, filename, token) {
+  var url = 'https://api.github.com/repos/' + c.owner + '/' + c.repo +
+    '/contents/' + c.postsDir + '/' + encodeURIComponent(filename) +
+    '?ref=' + encodeURIComponent(c.branch);
+  var headers = { Accept: 'application/vnd.github.raw' };
+  if (token) {
+    headers.Authorization = 'token ' + token;
+  }
+  var ctrl = new AbortController();
+  var timer = setTimeout(function () {
+    ctrl.abort();
+  }, 5000);
+  return fetch(url, { signal: ctrl.signal, headers: headers }).then(function (res) {
+    clearTimeout(timer);
+    if (!res.ok) {
+      throw new Error('API 加载失败：HTTP ' + res.status);
+    }
+    return res.text();
+  });
+}
+
+/* raw 直读（带时间戳换缓存键，绕开 raw CDN 已缓存内容） */
+function rawGetRaw(c, filename) {
   var rawUrl = 'https://raw.githubusercontent.com/' + c.owner + '/' + c.repo +
     '/' + c.branch + '/' + c.postsDir + '/' + filename + '?t=' + Date.now();
   var ctrl = new AbortController();
@@ -285,14 +324,17 @@ function getPostRaw(filename) {
       throw new Error('raw 加载失败：HTTP ' + res.status);
     }
     return res.text();
-  }).catch(function () {
-    clearTimeout(timer);
-    var path = '/repos/' + c.owner + '/' + c.repo + '/contents/' + c.postsDir +
-      '/' + filename + '?ref=' + encodeURIComponent(c.branch);
-    return apiRequest(path).then(function (data) {
-      return base64ToUtf8(data.content || '');
-    });
   });
+}
+
+/* 从后台登录态读取 Token（前后台共用 localStorage 键 jiumo_blog_admin） */
+function readAdminToken() {
+  try {
+    var auth = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    return auth.token || '';
+  } catch (e) {
+    return '';
+  }
 }
 
 /* 后台读取单个文章元信息（含 sha，用于更新/删除） */
