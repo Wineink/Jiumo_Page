@@ -18,7 +18,7 @@
   "appearance": {
     "theme": "light",
     "accent": "#0f766e",
-    "accentDark": "#14b8a6",
+    "accentDark": "#07e9ce",
     "buttonStyle": "rounded",
     "radius": 12,
     "fontSize": 16
@@ -28,12 +28,11 @@
     "darkToggle": true,
     "busuanzi": true,
     "scrollReveal": true,
-    "particles": false,
-    "particlesPreset": "default",
-    "typing": false,
+    "particles": true,
+    "particlesPreset": "snow",
+    "typing": true,
     "typingText": [
-      "欢迎来到 Jiumo_blog",
-      "记录生活与代码"
+      "欢迎来到 Jiumo_blog。"
     ],
     "utterances": {
       "enabled": false,
