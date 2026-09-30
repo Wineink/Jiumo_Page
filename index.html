@@ -1,24 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>閰掑ⅷ鐨勯〉闈?/title>
-  <link rel="stylesheet" href="assets/css/style.css?v=7">
+  <title>酒墨的页面</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
 </head>
 <body>
   <header class="site-header">
     <div class="inner">
       <div>
-        <h1 class="site-title"><a href="index.html" id="siteTitle">閰掑ⅷ鐨勯〉闈?/a></h1>
+        <h1 class="site-title"><a href="index.html" id="siteTitle">酒墨的页面</a></h1>
         <p class="site-subtitle" id="siteDesc"></p>
       </div>
       <div class="header-search" id="headerSearchWrap">
-        <input type="text" class="search-box" id="searchBox" placeholder="鎼滅储鏍囬銆佹爣绛炬垨姝ｆ枃鈥?>
+        <input type="text" class="search-box" id="searchBox" placeholder="搜索标题、标签或正文…">
       </div>
       <div class="header-actions" id="headerBtns">
-        <!-- 鑷畾涔夊揩鎹锋寜閽€佹殫鑹插垏鎹㈡寜閽敱鍚庡彴閰嶇疆娓叉煋 -->
-        <a class="hdr-btn" href="admin/index.html" title="鎵撳紑绠＄悊璁剧疆">璁剧疆</a>
+        <!-- 自定义快捷按钮、暗色切换按钮由后台配置渲染 -->
+        <a class="hdr-btn" href="admin/index.html" title="打开管理设置">设置</a>
       </div>
     </div>
   </header>
@@ -26,10 +26,10 @@
   <main class="container">
     <div class="layout">
 
-      <!-- 宸︽爮锛氬ご鍍忓崱 + 宸︿晶妯″潡锛堝彲鍚庡彴閰嶇疆锛?-->
+      <!-- 左栏：头像卡 + 左侧模块（可后台配置） -->
       <aside class="layout-left">
         <div class="profile-card">
-          <img id="profileAvatar" class="avatar shape-circle" alt="澶村儚" src="">
+          <img id="profileAvatar" class="avatar shape-circle" alt="头像" src="">
           <h2 class="profile-name" id="profileName"></h2>
           <p class="profile-intro" id="profileIntro"></p>
           <p class="profile-typing"><span id="typedTarget"></span></p>
@@ -37,14 +37,14 @@
         <div class="sidebar-modules" id="leftModules"></div>
       </aside>
 
-      <!-- 涓爮锛氭枃绔犲垪琛?-->
+      <!-- 中栏：文章列表 -->
       <div class="layout-main">
         <div class="post-list" id="postList">
-          <div class="state-box"><span class="spinner"></span>姝ｅ湪鍔犺浇鏂囩珷鈥?/div>
+          <div class="state-box"><span class="spinner"></span>正在加载文章…</div>
         </div>
       </div>
 
-      <!-- 鍙虫爮锛氬彸渚фā鍧楋紙澶氭ā鍧楋紝鍙悗鍙伴厤缃惎鐢?鍙傛暟/鎺掑簭/浣嶇疆锛?-->
+      <!-- 右栏：右侧模块（多模块，可后台配置启用/参数/排序/位置） -->
       <aside class="layout-right">
         <div class="sidebar-panel" id="sidebarPanel">
           <div class="sidebar-modules" id="sidebarModules"></div>
@@ -56,28 +56,27 @@
 
   <footer class="site-footer">
     <div class="container">
-      鐢?Jiumo_Page 椹卞姩 路 鎵樼浜?GitHub Pages
-      <span id="pvWrap"> 路 <span id="busuanzi_value_site_pv"></span> 娆℃祻瑙?/span>
+      由 Jiumo_Page 驱动 · 托管于 GitHub Pages
+      <span id="pvWrap"> · <span id="busuanzi_value_site_pv"></span> 次浏览</span>
     </div>
   </footer>
 
-  <!-- 鍙充笅瑙掑浐瀹氭寜閽細杩斿洖椤堕儴 + 娣辨祬鑹插垏鎹?-->
+  <!-- 右下角固定按钮：返回顶部 + 深浅色切换 -->
   <div class="corner-btns">
-    <button class="corner-btn" id="btnTop" title="杩斿洖椤堕儴" aria-label="杩斿洖椤堕儴">鈫?/button>
-    <button class="corner-btn" id="btnDark" title="鍒囨崲娣辨祬鑹? aria-label="鍒囨崲娣辨祬鑹?>鈽?/button>
+    <button class="corner-btn" id="btnTop" title="返回顶部" aria-label="返回顶部">↑</button>
+    <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="assets/js/config.js?v=7"></script>
-  <script src="assets/vendor/marked.min.js?v=7"></script>
-  <script src="assets/js/ui.js?v=7"></script>
-  <!-- 渚ф爮妯″潡锛堢嫭绔嬫枃浠跺す modules/锛屾敞鍐屽埌 window.JiumoModules锛?-->
-  <script src="modules/datetime/module.js?v=7"></script>
-  <script src="modules/weather/module.js?v=7"></script>
-  <script src="modules/ghchart/module.js?v=7"></script>
-  <script src="modules/stats/module.js?v=7"></script>
-  <script src="assets/js/blog.js?v=7"></script>
-  <!-- 涓嶈挏瀛愭祻瑙堥噺缁熻锛堝悗鍙板彲寮€鍏筹級 -->
+  <script src="assets/js/config.js?v=8"></script>
+  <script src="assets/vendor/marked.min.js?v=8"></script>
+  <script src="assets/js/ui.js?v=8"></script>
+  <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
+  <script src="modules/datetime/module.js?v=8"></script>
+  <script src="modules/weather/module.js?v=8"></script>
+  <script src="modules/ghchart/module.js?v=8"></script>
+  <script src="modules/stats/module.js?v=8"></script>
+  <script src="assets/js/blog.js?v=8"></script>
+  <!-- 不蒜子浏览量统计（后台可开关） -->
   <script src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>
-

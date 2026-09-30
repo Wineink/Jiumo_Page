@@ -1,102 +1,102 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>绠＄悊鍚庡彴 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=7">
+  <title>管理后台 - Jiumo_Page</title>
+  <link rel="stylesheet" href="../assets/css/style.css?v=8">
 </head>
 <body>
 
-  <!-- 鐧诲綍瑙嗗浘 -->
+  <!-- 登录视图 -->
   <div class="login-shell" id="loginView">
     <div>
       <div class="panel">
-        <h2>绠＄悊鍚庡彴鐧诲綍</h2>
+        <h2>管理后台登录</h2>
         <form id="loginForm">
           <div class="form-grid">
             <div class="form-row">
-              <label>GitHub 鐢ㄦ埛鍚?/label>
-              <input type="text" id="loginOwner" placeholder="渚嬪 octocat" required>
+              <label>GitHub 用户名</label>
+              <input type="text" id="loginOwner" placeholder="例如 octocat" required>
             </div>
             <div class="form-row">
-              <label>浠撳簱鍚?/label>
+              <label>仓库名</label>
               <input type="text" id="loginRepo" value="Jiumo_Page" required>
             </div>
           </div>
           <div class="form-row">
-            <label>鍒嗘敮</label>
+            <label>分支</label>
             <input type="text" id="loginBranch" value="main" required>
           </div>
           <div class="form-row">
             <label>Personal Access Token
-              <span class="hint">浠呬繚瀛樺湪鏈祻瑙堝櫒 localStorage锛屽彧鍙戦€佺粰 api.github.com</span>
+              <span class="hint">仅保存在本浏览器 localStorage，只发送给 api.github.com</span>
             </label>
             <input type="password" id="loginToken" placeholder="github_pat_..." required autocomplete="current-password">
           </div>
           <div class="actions">
-            <button type="submit" class="btn btn-primary" id="loginBtn">鐧诲綍骞堕獙璇?/button>
+            <button type="submit" class="btn btn-primary" id="loginBtn">登录并验证</button>
           </div>
         </form>
       </div>
 
       <div class="panel">
-        <h2>濡備綍鐢熸垚 Token锛團ine-grained锛岀害 1 鍒嗛挓锛?/h2>
+        <h2>如何生成 Token（Fine-grained，约 1 分钟）</h2>
         <ol style="font-size:14px;color:var(--text);padding-left:1.4em;line-height:1.9;">
-          <li>鎵撳紑
+          <li>打开
             <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
               github.com/settings/personal-access-tokens/new</a>
           </li>
-          <li><strong>Repository access</strong> 閫夋嫨 <em>Only select repositories</em>锛屽嬀閫夊崥瀹粨搴?/li>
-          <li><strong>Permissions 鈫?Repository permissions 鈫?Contents</strong> 璁句负 <em>Read and write</em></li>
-          <li>鐢熸垚鍚庡鍒?<code>github_pat_</code> 寮€澶寸殑 Token锛岀矘璐村埌涓婃柟</li>
+          <li><strong>Repository access</strong> 选择 <em>Only select repositories</em>，勾选博客仓库</li>
+          <li><strong>Permissions → Repository permissions → Contents</strong> 设为 <em>Read and write</em></li>
+          <li>生成后复制 <code>github_pat_</code> 开头的 Token，粘贴到上方</li>
         </ol>
       </div>
     </div>
   </div>
 
-  <!-- 绠＄悊涓昏鍥撅細宸︿晶鍒嗙被瀵艰埅 + 鍐呭鍖洪摵婊?-->
+  <!-- 管理主视图：左侧分类导航 + 内容区铺满 -->
   <div class="admin-shell hidden" id="adminView">
     <nav class="admin-nav">
-      <div class="nav-brand">Jiumo_Page<small>绠＄悊鍚庡彴</small></div>
-      <button class="nav-item active" data-view="posts" id="navPosts">鏂囩珷绠＄悊</button>
-      <button class="nav-item" data-view="repo" id="navRepo">浠撳簱绠＄悊</button>
-      <button class="nav-item" data-view="pages" id="navPages">椤甸潰绠＄悊</button>
-      <button class="nav-item" data-view="theme" id="navTheme">涓婚</button>
-      <button class="nav-item" data-view="widgets" id="navWidgets">缁勪欢妯″潡</button>
-      <button class="nav-item" data-view="animation" id="navAnimation">鍔ㄧ敾绠＄悊</button>
+      <div class="nav-brand">Jiumo_Page<small>管理后台</small></div>
+      <button class="nav-item active" data-view="posts" id="navPosts">文章管理</button>
+      <button class="nav-item" data-view="repo" id="navRepo">仓库管理</button>
+      <button class="nav-item" data-view="pages" id="navPages">页面管理</button>
+      <button class="nav-item" data-view="theme" id="navTheme">主题</button>
+      <button class="nav-item" data-view="widgets" id="navWidgets">组件模块</button>
+      <button class="nav-item" data-view="animation" id="navAnimation">动画管理</button>
       <div class="nav-sep"></div>
-      <a class="nav-item" href="../index.html">鍗氬棣栭〉</a>
-      <button class="nav-item" id="btnLogout">鐧诲嚭</button>
+      <a class="nav-item" href="../index.html">博客首页</a>
+      <button class="nav-item" id="btnLogout">登出</button>
     </nav>
 
     <main class="admin-content">
       <div class="admin-topbar">
         <div>
-          <h1 id="viewTitle">鏂囩珷绠＄悊</h1>
+          <h1 id="viewTitle">文章管理</h1>
           <div class="repo-info" id="repoInfo"></div>
         </div>
         <div class="actions">
-          <button class="btn btn-primary" id="btnApplyAll">搴旂敤鎵€鏈夎缃?span class="apply-badge">!</span></button>
-          <a class="btn btn-ghost" href="../index.html">鍗氬棣栭〉</a>
-          <button class="btn btn-danger" id="btnLogoutTop">鐧诲嚭</button>
+          <button class="btn btn-primary" id="btnApplyAll">应用所有设置<span class="apply-badge">!</span></button>
+          <a class="btn btn-ghost" href="../index.html">博客首页</a>
+          <button class="btn btn-danger" id="btnLogoutTop">登出</button>
         </div>
       </div>
 
-      <!-- 鏂囩珷绠＄悊 -->
+      <!-- 文章管理 -->
       <div class="view-pane" id="view-posts">
         <div class="panel">
           <div class="editor-toolbar" style="margin-bottom:4px;">
-            <h2 style="margin:0;">鍏ㄩ儴鏂囩珷</h2>
+            <h2 style="margin:0;">全部文章</h2>
             <div class="actions">
-              <button class="btn btn-ghost" id="btnImport">瀵煎叆 MD</button>
+              <button class="btn btn-ghost" id="btnImport">导入 MD</button>
               <input type="file" id="importInput" accept=".md,text/markdown" multiple
-                     style="display:none;" title="鍙閫?.md 鏂囦欢鎵归噺瀵煎叆">
-              <button class="btn btn-primary" id="btnNew">+ 鏂板缓鏂囩珷</button>
+                     style="display:none;" title="可多选 .md 文件批量导入">
+              <button class="btn btn-primary" id="btnNew">+ 新建文章</button>
             </div>
           </div>
           <div class="admin-list" id="adminList">
-            <div class="state-box"><span class="spinner"></span>姝ｅ湪鍔犺浇鈥?/div>
+            <div class="state-box"><span class="spinner"></span>正在加载…</div>
           </div>
         </div>
 
@@ -104,220 +104,220 @@
           <div class="editor-toolbar">
             <div class="filename-box" id="filenameBox"></div>
             <div class="tabs">
-              <button type="button" id="tabEdit" class="active">缂栬緫</button>
-              <button type="button" id="tabPreview">棰勮</button>
+              <button type="button" id="tabEdit" class="active">编辑</button>
+              <button type="button" id="tabPreview">预览</button>
             </div>
           </div>
           <div class="form-row">
-            <label>鏍囬</label>
-            <input type="text" id="editTitle" placeholder="璇疯緭鍏ユ枃绔犳爣棰?>
+            <label>标题</label>
+            <input type="text" id="editTitle" placeholder="请输入文章标题">
           </div>
           <div class="form-grid">
             <div class="form-row">
-              <label>鏃ユ湡</label>
+              <label>日期</label>
               <input type="text" id="editDate">
             </div>
             <div class="form-row">
-              <label>鏍囩<span class="hint">澶氫釜鏍囩鐢ㄨ嫳鏂囬€楀彿鍒嗛殧</span></label>
-              <input type="text" id="editTags" placeholder="闅忕瑪, 鎶€鏈?>
+              <label>标签<span class="hint">多个标签用英文逗号分隔</span></label>
+              <input type="text" id="editTags" placeholder="随笔, 技术">
             </div>
           </div>
           <div class="form-row">
-            <label>鎽樿<span class="hint">鐣欑┖鍒欒嚜鍔ㄦ埅鍙栨鏂囧紑澶?/span></label>
-            <input type="text" id="editSummary" placeholder="涓€鍙ヨ瘽姒傛嫭杩欑瘒鏂囩珷">
+            <label>摘要<span class="hint">留空则自动截取正文开头</span></label>
+            <input type="text" id="editSummary" placeholder="一句话概括这篇文章">
           </div>
           <div class="editor-body" id="editBodyWrap">
             <div class="form-row" style="margin-bottom:0;">
-              <label>姝ｆ枃锛堟敮鎸?Markdown锛?/label>
-              <textarea id="editBody" placeholder="鍦ㄨ繖閲屽紑濮嬪啓浣溾€?></textarea>
+              <label>正文（支持 Markdown）</label>
+              <textarea id="editBody" placeholder="在这里开始写作…"></textarea>
             </div>
           </div>
           <div class="preview-pane post-article hidden" id="editPreview"></div>
           <div class="actions" style="margin-top:18px;">
-            <button class="btn btn-primary" id="btnSave">淇濆瓨骞跺彂甯?/button>
-            <button class="btn btn-ghost" id="btnCancel">鍙栨秷</button>
+            <button class="btn btn-primary" id="btnSave">保存并发布</button>
+            <button class="btn btn-ghost" id="btnCancel">取消</button>
           </div>
         </div>
       </div>
 
-      <!-- 浠撳簱绠＄悊 -->
+      <!-- 仓库管理 -->
       <div class="view-pane hidden" id="view-repo">
         <div class="panel">
-          <h2>浠撳簱涓庣櫥褰?/h2>
+          <h2>仓库与登录</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label>GitHub 鐢ㄦ埛鍚?/label>
+              <label>GitHub 用户名</label>
               <input type="text" id="setOwner">
             </div>
             <div class="form-row">
-              <label>浠撳簱鍚?/label>
+              <label>仓库名</label>
               <input type="text" id="setRepo">
             </div>
           </div>
           <div class="form-row">
-            <label>鍒嗘敮</label>
+            <label>分支</label>
             <input type="text" id="setBranch">
           </div>
           <div class="form-row">
-            <label>Token<span class="hint">浠呬繚瀛樺湪鏈祻瑙堝櫒锛岀敤浜?GitHub API 鍐欐搷浣?/span></label>
+            <label>Token<span class="hint">仅保存在本浏览器，用于 GitHub API 写操作</span></label>
             <input type="password" id="setToken" autocomplete="off">
           </div>
           <p style="font-size:12px;color:var(--muted);margin:0;">
-            淇敼鍚庣偣鍑诲彸涓婅銆屽簲鐢ㄦ墍鏈夎缃€嶄繚瀛樸€?
+            修改后点击右上角「应用所有设置」保存。
           </p>
         </div>
       </div>
 
-      <!-- 椤甸潰绠＄悊 -->
+      <!-- 页面管理 -->
       <div class="view-pane hidden" id="view-pages">
         <div class="panel">
-          <h2>绔欑偣淇℃伅</h2>
+          <h2>站点信息</h2>
           <div class="form-row">
-            <label>鍗氬鍚嶇О<span class="hint">鏄剧ず鍦ㄩ〉闈㈤《閮?/span></label>
+            <label>博客名称<span class="hint">显示在页面顶部</span></label>
             <input type="text" id="cfgSiteTitle">
           </div>
           <div class="form-row">
-            <label>鍗氬绠€浠?span class="hint">鏄剧ず鍦ㄦ爣棰樹笅鏂?/span></label>
+            <label>博客简介<span class="hint">显示在标题下方</span></label>
             <textarea id="cfgSiteDesc" rows="2"></textarea>
           </div>
         </div>
         <div class="panel">
-          <h2>澶村儚涓庝釜浜轰粙缁?/h2>
+          <h2>头像与个人介绍</h2>
           <div class="form-row">
-            <label><input type="checkbox" id="cfgShowAvatar"> 鏄剧ず澶村儚</label>
+            <label><input type="checkbox" id="cfgShowAvatar"> 显示头像</label>
           </div>
           <div class="form-row">
-            <label>澶村儚鍥剧墖鍦板潃<span class="hint">鐣欑┖浣跨敤榛樿棣栧瓧姣嶅ご鍍?/span></label>
-            <input type="text" id="cfgAvatarUrl" placeholder="https://鈥?鎴?images/avatar.png">
+            <label>头像图片地址<span class="hint">留空使用默认首字母头像</span></label>
+            <input type="text" id="cfgAvatarUrl" placeholder="https://… 或 images/avatar.png">
           </div>
           <div class="form-row">
-            <label>澶村儚褰㈢姸</label>
+            <label>头像形状</label>
             <select id="cfgAvatarShape">
-              <option value="circle">鍦嗗舰</option>
-              <option value="square">鏂瑰舰</option>
+              <option value="circle">圆形</option>
+              <option value="square">方形</option>
             </select>
           </div>
           <div class="form-row">
-            <label>涓汉浠嬬粛<span class="hint">鍚敤鎵撳瓧鏈哄悗浠ユ墦瀛楁晥鏋滄樉绀猴紝澶氬彞鐢ㄨ嫳鏂囧垎鍙?; 鍒嗛殧</span></label>
+            <label>个人介绍<span class="hint">启用打字机后以打字效果显示，多句用英文分号 ; 分隔</span></label>
             <textarea id="cfgProfileIntro" rows="3"></textarea>
           </div>
         </div>
         <div class="panel">
-          <h2>棣栭〉鏄剧ず</h2>
+          <h2>首页显示</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgShowSearch"> 鏄剧ず鎼滅储妗?/label>
+              <label><input type="checkbox" id="cfgShowSearch"> 显示搜索框</label>
             </div>
             <div class="form-row">
-              <label><input type="checkbox" id="cfgShowSummary"> 鏄剧ず鏂囩珷鎽樿</label>
+              <label><input type="checkbox" id="cfgShowSummary"> 显示文章摘要</label>
             </div>
           </div>
           <div class="form-row">
-            <label>姣忛〉鏄剧ず鏂囩珷鏁?span class="hint">瓒呭嚭閮ㄥ垎鍙湪鍒楄〃鏈熬鎻愮ず</span></label>
+            <label>每页显示文章数<span class="hint">超出部分只在列表末尾提示</span></label>
             <input type="number" id="cfgPageSize" min="1" max="100">
           </div>
         </div>
       </div>
 
-      <!-- 涓婚 -->
+      <!-- 主题 -->
       <div class="view-pane hidden" id="view-theme">
         <div class="panel">
-          <h2>澶栬涓婚</h2>
+          <h2>外观主题</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label>涓婚妯″紡</label>
+              <label>主题模式</label>
               <select id="cfgTheme">
-                <option value="light">娴呰壊</option>
-                <option value="dark">娣辫壊</option>
-                <option value="auto">璺熼殢绯荤粺</option>
+                <option value="light">浅色</option>
+                <option value="dark">深色</option>
+                <option value="auto">跟随系统</option>
               </select>
             </div>
             <div class="form-row">
-              <label>鎸夐挳鏍峰紡</label>
+              <label>按钮样式</label>
               <select id="cfgButtonStyle">
-                <option value="rounded">鍦嗚</option>
-                <option value="square">鐩磋</option>
+                <option value="rounded">圆角</option>
+                <option value="square">直角</option>
               </select>
             </div>
           </div>
           <div class="form-grid">
             <div class="form-row">
-              <label>娴呰壊涓婚涓昏壊</label>
+              <label>浅色主题主色</label>
               <input type="color" id="cfgAccent">
             </div>
             <div class="form-row">
-              <label>娣辫壊涓婚涓昏壊</label>
+              <label>深色主题主色</label>
               <input type="color" id="cfgAccentDark">
             </div>
           </div>
           <div class="form-grid">
             <div class="form-row">
-              <label>鍗＄墖鍦嗚锛堝儚绱狅級</label>
+              <label>卡片圆角（像素）</label>
               <input type="number" id="cfgRadius" min="0" max="40">
             </div>
             <div class="form-row">
-              <label>姝ｆ枃瀛楀彿锛堝儚绱狅級</label>
+              <label>正文字号（像素）</label>
               <input type="number" id="cfgFontSize" min="12" max="24">
             </div>
           </div>
         </div>
         <div class="panel">
-          <h2>鍙充笅瑙掓寜閽?/h2>
+          <h2>右下角按钮</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgWBackTop"> 杩斿洖椤堕儴鎸夐挳</label>
+              <label><input type="checkbox" id="cfgWBackTop"> 返回顶部按钮</label>
             </div>
             <div class="form-row">
-              <label><input type="checkbox" id="cfgWDarkToggle"> 娣辨祬鑹插垏鎹㈡寜閽?/label>
+              <label><input type="checkbox" id="cfgWDarkToggle"> 深浅色切换按钮</label>
             </div>
           </div>
           <div class="form-row">
-            <label>娣辨祬鑹叉寜閽綅缃?/label>
+            <label>深浅色按钮位置</label>
             <select id="cfgWDarkPos">
-              <option value="bottom-right">鍙充笅瑙?/option>
-              <option value="top-right">鍙充笂瑙?/option>
-              <option value="hidden">涓嶆樉绀?/option>
+              <option value="bottom-right">右下角</option>
+              <option value="top-right">右上角</option>
+              <option value="hidden">不显示</option>
             </select>
           </div>
         </div>
         <div class="panel">
-          <h2>鍙充笂瑙掕嚜瀹氫箟鎸夐挳</h2>
+          <h2>右上角自定义按钮</h2>
           <div class="form-row">
-            <label>鎸夐挳鍒楄〃<span class="hint">姣忚涓€涓細鎸夐挳鏂囧瓧,閾炬帴鍦板潃锛涙樉绀哄湪銆岃缃€嶆寜閽乏渚э紝鍙姞澶氫釜</span></label>
-            <textarea id="cfgHeaderBtns" rows="4" placeholder="渚嬪锛?#10;GitHub,https://github.com/jiumooo&#10;鍏充簬,about.html"></textarea>
+            <label>按钮列表<span class="hint">每行一个：按钮文字,链接地址；显示在「设置」按钮左侧，可加多个</span></label>
+            <textarea id="cfgHeaderBtns" rows="4" placeholder="例如：&#10;GitHub,https://github.com/jiumooo&#10;关于,about.html"></textarea>
           </div>
         </div>
       </div>
 
-      <!-- 缁勪欢妯″潡 -->
+      <!-- 组件模块 -->
       <div class="view-pane hidden" id="view-widgets">
         <div class="panel">
-          <h2>鍙充晶妯″潡</h2>
+          <h2>右侧模块</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgSidebarEnabled"> 鏄剧ず鍙充晶妯″潡鍖?/label>
+              <label><input type="checkbox" id="cfgSidebarEnabled"> 显示右侧模块区</label>
             </div>
             <div class="form-row">
-              <label><input type="checkbox" id="cfgSidebarSticky"> 鍥哄畾涓嶉殢椤甸潰婊戝姩</label>
+              <label><input type="checkbox" id="cfgSidebarSticky"> 固定不随页面滑动</label>
             </div>
           </div>
           <div id="modulesList" style="margin-top:14px;"></div>
         </div>
         <div class="panel">
-          <h2>娴忚閲忕粺璁?/h2>
+          <h2>浏览量统计</h2>
           <div class="form-row">
-            <label><input type="checkbox" id="cfgWBusuanzi"> 椤佃剼鏄剧ず涓嶈挏瀛愬叏绔欐祻瑙?/label>
+            <label><input type="checkbox" id="cfgWBusuanzi"> 页脚显示不蒜子全站浏览</label>
           </div>
         </div>
         <div class="panel">
-          <h2>璇勮鍖猴紙浜岄€変竴鍚敤锛?/h2>
+          <h2>评论区（二选一启用）</h2>
           <div class="form-row">
-            <label><input type="checkbox" id="cfgUtterEnabled"> 鍚敤 utterances 璇勮
-              <span class="hint">璇勮瀛?GitHub Issues锛岄渶鍏堝湪 utterances 瀹樼綉瀹夎鍒版湰浠撳簱</span></label>
+            <label><input type="checkbox" id="cfgUtterEnabled"> 启用 utterances 评论
+              <span class="hint">评论存 GitHub Issues，需先在 utterances 官网安装到本仓库</span></label>
           </div>
           <div class="form-grid">
             <div class="form-row">
-              <label>utterances 浠撳簱<span class="hint">鏍煎紡 owner/repo</span></label>
+              <label>utterances 仓库<span class="hint">格式 owner/repo</span></label>
               <input type="text" id="cfgUtterRepo" placeholder="jiumooo/Jiumo_Page">
             </div>
             <div class="form-row">
@@ -331,8 +331,8 @@
             </div>
           </div>
           <div class="form-row">
-            <label><input type="checkbox" id="cfgGitalkEnabled"> 鍚敤 Gitalk 璇勮
-              <span class="hint">闇€娉ㄥ唽 GitHub OAuth App 鑾峰彇 clientID / clientSecret</span></label>
+            <label><input type="checkbox" id="cfgGitalkEnabled"> 启用 Gitalk 评论
+              <span class="hint">需注册 GitHub OAuth App 获取 clientID / clientSecret</span></label>
           </div>
           <div class="form-grid">
             <div class="form-row">
@@ -345,49 +345,49 @@
             </div>
           </div>
           <div class="form-row">
-            <label>Gitalk 浠撳簱<span class="hint">鐣欑┖榛樿浣跨敤鍗氬浠撳簱</span></label>
+            <label>Gitalk 仓库<span class="hint">留空默认使用博客仓库</span></label>
             <input type="text" id="cfgGitalkRepo" placeholder="Jiumo_Page">
           </div>
         </div>
       </div>
 
-      <!-- 鍔ㄧ敾绠＄悊 -->
+      <!-- 动画管理 -->
       <div class="view-pane hidden" id="view-animation">
         <div class="panel">
-          <h2>婊氬姩鍏ュ満鍔ㄧ敾</h2>
+          <h2>滚动入场动画</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgWScrollReveal"> 鍚敤婊氬姩鍏ュ満鍔ㄧ敾</label>
+              <label><input type="checkbox" id="cfgWScrollReveal"> 启用滚动入场动画</label>
             </div>
             <div class="form-row">
-              <label>鍔ㄧ敾閫熷害</label>
+              <label>动画速度</label>
               <select id="cfgAnimSpeed">
-                <option value="slow">鎱?/option>
-                <option value="normal">姝ｅ父</option>
-                <option value="fast">蹇?/option>
+                <option value="slow">慢</option>
+                <option value="normal">正常</option>
+                <option value="fast">快</option>
               </select>
             </div>
           </div>
         </div>
         <div class="panel">
-          <h2>绮掑瓙鑳屾櫙</h2>
+          <h2>粒子背景</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgWParticles"> 鍚敤绮掑瓙鑳屾櫙</label>
+              <label><input type="checkbox" id="cfgWParticles"> 启用粒子背景</label>
             </div>
             <div class="form-row">
-              <label>绮掑瓙棰勮</label>
+              <label>粒子预设</label>
               <select id="cfgWParticlesPreset">
-                <option value="default">杩炵嚎绮掑瓙</option>
-                <option value="snow">闆姳椋樿惤</option>
+                <option value="default">连线粒子</option>
+                <option value="snow">雪花飘落</option>
               </select>
             </div>
           </div>
         </div>
         <div class="panel">
-          <h2>鎵撳瓧鏈烘晥鏋?/h2>
+          <h2>打字机效果</h2>
           <div class="form-row">
-            <label><input type="checkbox" id="cfgWTyping"> 鍚敤鎵撳瓧鏈?span class="hint">鏂囨鍦ㄣ€岄〉闈㈢鐞?鈫?涓汉浠嬬粛銆嶄腑缂栬緫</span></label>
+            <label><input type="checkbox" id="cfgWTyping"> 启用打字机<span class="hint">文案在「页面管理 → 个人介绍」中编辑</span></label>
           </div>
         </div>
       </div>
@@ -395,21 +395,20 @@
     </main>
   </div>
 
-  <!-- 鍙充笅瑙掑浐瀹氭寜閽細杩斿洖椤堕儴 + 娣辨祬鑹插垏鎹?-->
+  <!-- 右下角固定按钮：返回顶部 + 深浅色切换 -->
   <div class="corner-btns">
-    <button class="corner-btn" id="btnTop" title="杩斿洖椤堕儴" aria-label="杩斿洖椤堕儴">鈫?/button>
-    <button class="corner-btn" id="btnDark" title="鍒囨崲娣辨祬鑹? aria-label="鍒囨崲娣辨祬鑹?>鈽?/button>
+    <button class="corner-btn" id="btnTop" title="返回顶部" aria-label="返回顶部">↑</button>
+    <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=7"></script>
-  <script src="../assets/vendor/marked.min.js?v=7"></script>
-  <script src="../assets/js/ui.js?v=7"></script>
-  <!-- 渚ф爮妯″潡锛堢嫭绔嬫枃浠跺す modules/锛屾敞鍐屽埌 window.JiumoModules锛?-->
-  <script src="../modules/datetime/module.js?v=7"></script>
-  <script src="../modules/weather/module.js?v=7"></script>
-  <script src="../modules/ghchart/module.js?v=7"></script>
-  <script src="../modules/stats/module.js?v=7"></script>
-  <script src="../assets/js/admin.js?v=7"></script>
+  <script src="../assets/js/config.js?v=8"></script>
+  <script src="../assets/vendor/marked.min.js?v=8"></script>
+  <script src="../assets/js/ui.js?v=8"></script>
+  <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
+  <script src="../modules/datetime/module.js?v=8"></script>
+  <script src="../modules/weather/module.js?v=8"></script>
+  <script src="../modules/ghchart/module.js?v=8"></script>
+  <script src="../modules/stats/module.js?v=8"></script>
+  <script src="../assets/js/admin.js?v=8"></script>
 </body>
 </html>
-
