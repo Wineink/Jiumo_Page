@@ -7,7 +7,7 @@
     "showAvatar": true,
     "avatar": "",
     "avatarShape": "circle",
-    "intro": "这是我的个人博客，记录生活与代码。欢迎来到 Jiumo_blog。"
+    "intro": "欢迎来到 Jiumo_blog。"
   },
   "sidebar": {
     "enabled": true,
