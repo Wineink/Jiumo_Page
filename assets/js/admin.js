@@ -815,7 +815,11 @@
         btn.disabled = false;
         btn.textContent = '应用所有设置';
         clearDirty();
-        showToast('所有设置已保存，Pages 约 1 分钟后生效', 'success');
+        /* 广播给同域名前台标签页：立即热更新，无需手动刷新 */
+        try {
+          localStorage.setItem(CFG_PUSH_KEY, String(Date.now()));
+        } catch (e) {}
+        showToast('设置已保存，前台页面已自动生效', 'success');
         SITE_CFG = deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), d);
         applyAppearance(SITE_CFG);
         applyTheme();

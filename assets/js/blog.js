@@ -162,5 +162,9 @@
     if (window.initJiumoUI) {
       window.initJiumoUI();
     }
+    /* 配置热更新：后台应用设置后前台自动生效，无需手动刷新 */
+    if (window.startConfigWatch) {
+      window.startConfigWatch();
+    }
   });
 })();

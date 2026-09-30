@@ -111,9 +111,15 @@ function siteConfigUrl() {
     '../site-config.json' : 'site-config.json';
 }
 
-/* 加载仓库根 site-config.json；文件不存在或读取失败时使用默认配置 */
+/* 后台应用设置后的跨标签页广播键：前台收到 storage 事件立即热更新配置 */
+var CFG_PUSH_KEY = 'jiumo_cfg_push';
+
+/* 加载仓库根 site-config.json；文件不存在或读取失败时使用默认配置
+ * 走 no-store + 时间戳，绕过 GitHub Pages 静态缓存，保证设置完立即生效 */
 function loadSiteConfigFile() {
-  return fetch(siteConfigUrl()).then(function (res) {
+  var url = siteConfigUrl();
+  url += (url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
+  return fetch(url, { cache: 'no-store' }).then(function (res) {
     if (!res.ok) {
       throw new Error('config missing');
     }
@@ -127,6 +133,37 @@ function loadSiteConfigFile() {
     return SITE_CFG;
   });
 }
+
+/* 前台配置热更新：
+ * 1. 后台「应用所有设置」保存成功后广播 storage 事件，前台立即重拉配置并应用；
+ * 2. 兜底轮询（默认 60 秒，可在后台 layout.configRefresh 调），配置变化自动生效；
+ * 3. 只在配置真正变化时重建页面元素，避免无谓闪烁。 */
+function startConfigWatch() {
+  if (location.pathname.indexOf('/admin/') !== -1) {
+    return; /* 后台页面不轮询 */
+  }
+  _cfgLastJson = JSON.stringify(SITE_CFG);
+  var applyIfChanged = function () {
+    loadSiteConfigFile().then(function (cfg) {
+      var now = JSON.stringify(cfg);
+      if (now !== _cfgLastJson) {
+        _cfgLastJson = now;
+        if (window.applySiteConfig) {
+          applySiteConfig(cfg);
+          showToast('设置已更新，页面已自动应用', 'success');
+        }
+      }
+    }).catch(function () {});
+  };
+  window.addEventListener('storage', function (e) {
+    if (e.key === CFG_PUSH_KEY) {
+      applyIfChanged();
+    }
+  });
+  var refresh = (SITE_CFG.layout && SITE_CFG.layout.configRefresh) || 60;
+  setInterval(applyIfChanged, Math.max(10, refresh) * 1000);
+}
+var _cfgLastJson = '';
 
 /* 兼容旧版 sidebar 配置：只有 title/content 时转成 modules 数组 */
 function migrateSidebarConfig(json) {
