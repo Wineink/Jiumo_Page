@@ -1,7 +1,7 @@
 {
   "site": {
-    "title": "墨迹博客",
-    "desc": "一个托管在 GitHub Pages 上的静态博客，在 /admin 后台写作发布"
+    "title": "酒墨的博客Demo",
+    "desc": "一个托管在 GitHub Pages 上的静态博客，有后台管理写作发布等。"
   },
   "profile": {
     "showAvatar": true,
