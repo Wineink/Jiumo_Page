@@ -1,7 +1,7 @@
 # Jiumo_Page
 
-**在线页面：** [点击访问](https://wineink.github.io/Jiumo_Page/)
-**页面后台：** [点击进入](https://wineink.github.io/Jiumo_Page/admin/)
+**在线页面：** [点击访问](https://jiumooo.github.io/Jiumo_Page/)
+**页面后台：** [点击进入](https://jiumooo.github.io/Jiumo_Page/admin/)
 
 一个**纯静态、零构建、带管理后台**的博客，直接部署在 GitHub Pages 上。
 
@@ -74,7 +74,7 @@ https://你的用户名.github.io/Jiumo_Page/
 
 ### 4. 登录后台写文章
 
-1. 打开 `https://Wineink.github.io/Jiumo_Page/admin/`
+1. 打开 `https://jiumooo.github.io/Jiumo_Page/admin/`
 2. 生成 Fine-grained Token：访问
    <https://github.com/settings/personal-access-tokens/new>
    - **Repository access**：`Only select repositories`，勾选本仓库

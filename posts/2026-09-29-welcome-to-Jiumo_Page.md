@@ -9,8 +9,8 @@ summary: "这是 Jiumo_Page 的第一篇示例文章，介绍如何在管理后�
 
 
 
-**线上博客：** [点击访问](https://wineink.github.io/Jiumo_Page/)
-**线上后台：** [点击进入](https://wineink.github.io/Jiumo_Page/admin/)
+**线上页面：** [点击访问](https://jiumooo.github.io/Jiumo_Page/)
+**页面后台：** [点击进入](https://jiumooo.github.io/Jiumo_Page/admin/)
 
 ## 这是什么
 

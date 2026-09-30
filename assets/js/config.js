@@ -12,7 +12,7 @@
 
 /* 站点默认配置：部署前把 owner 改成你的 GitHub 用户名 */
 window.SiteConfig = {
-  owner: 'Wineink',
+  owner: 'jiumooo',
   repo: 'Jiumo_Page',
   branch: 'main',
   postsDir: 'posts',
@@ -53,7 +53,7 @@ window.DEFAULT_SITE_CONFIG = {
       { id: 'weather', enabled: false, title: '天气',
         city: '无锡', lat: 31.49, lon: 120.31, unit: 'celsius' },
       { id: 'ghchart', enabled: false, title: 'GitHub 贡献',
-        username: 'Wineink' },
+        username: 'jiumooo' },
       { id: 'stats', enabled: false, title: '访问统计',
         showPv: true, showUv: false }
     ]
@@ -193,7 +193,8 @@ function getConfig() {
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
     if (saved) {
-      cfg.owner = saved.owner || cfg.owner;
+      /* 用户名改名兼容：旧浏览器里保存的还是 Wineink，自动使用新用户名，无需重新登录 */
+      cfg.owner = (saved.owner === 'Wineink' || !saved.owner) ? cfg.owner : saved.owner;
       /* 仓库改名兼容：旧浏览器里保存的还是 Jiumo_blog，自动使用新名，无需重新登录 */
       cfg.repo = (saved.repo === 'Jiumo_blog' || !saved.repo) ? cfg.repo : saved.repo;
       cfg.branch = saved.branch || cfg.branch;
