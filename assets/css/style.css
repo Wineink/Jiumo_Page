@@ -366,6 +366,22 @@ a:hover {
   font-size: 14px;
 }
 
+/* 头部搜索框：位于标题与设置按钮之间，右缘约在页面 2/3 处，宽度自适应不过宽 */
+.header-search {
+  flex: 1 1 auto;
+  min-width: 140px;
+  max-width: min(560px, 62%);
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.header-search .search-box {
+  width: 100%;
+  margin-bottom: 0;
+  padding: 9px 14px;
+  font-size: 14px;
+}
+
 /* 头部右侧按钮组（自定义按钮 + 暗色切换 + 设置按钮） */
 .header-actions {
   display: flex;
@@ -432,7 +448,6 @@ a:hover {
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
-  margin-bottom: 28px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -1354,8 +1369,16 @@ html[data-theme="dark"] .post-article code {
     align-items: flex-start;
   }
 
+  .header-search {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    order: 3;
+  }
+
   .header-actions {
     flex-wrap: wrap;
+    order: 2;
   }
 
   .site-title {

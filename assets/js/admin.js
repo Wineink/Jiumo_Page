@@ -697,7 +697,9 @@
     }
     var mods = (state.draft.sidebar && state.draft.sidebar.modules) || [];
     wrap.innerHTML = mods.map(function (m, idx) {
-      var fields = MODULE_FIELDS[m.id] || [];
+      /* 优先读 modules/ 注册表里的字段定义，新模块无需改后台代码 */
+      var reg = (window.JiumoModules && window.JiumoModules[m.id]) || {};
+      var fields = (reg.fields && reg.fields.length) ? reg.fields : (MODULE_FIELDS[m.id] || []);
       var body = fields.map(function (f) {
         var inputId = 'mod_' + m.id + '_' + f.key;
         if (f.type === 'checkbox') {
@@ -733,6 +735,10 @@
             m.id + '"' + (m.enabled ? ' checked' : '') + '> ' +
             escapeHtml(m.title || m.id) + ' <span class="mod-badge">' + m.id + '</span></label>' +
           '<div class="mod-actions">' +
+            '<select class="mod-pos" data-mod="' + m.id + '" data-key="position" title="模块放置位置">' +
+              '<option value="left"' + (m.position === 'left' ? ' selected' : '') + '>左栏</option>' +
+              '<option value="right"' + (m.position !== 'left' ? ' selected' : '') + '>右栏</option>' +
+            '</select>' +
             '<button class="btn btn-ghost btn-sm mod-arrow" data-move="up" data-idx="' + idx +
             '" title="上移">↑</button>' +
             '<button class="btn btn-ghost btn-sm mod-arrow" data-move="down" data-idx="' + idx +
