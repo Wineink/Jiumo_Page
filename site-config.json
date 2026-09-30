@@ -1,13 +1,13 @@
 {
   "site": {
-    "title": "酒墨的博客Demo",
-    "desc": "一个托管在 GitHub Pages 上的静态博客，有后台管理写作发布等。"
+    "title": "酒墨的页面Demo",
+    "desc": "一个托管在 GitHub Pages 上的静态页面，有后台管理写作发布等。"
   },
   "profile": {
     "showAvatar": true,
     "avatar": "",
     "avatarShape": "circle",
-    "intro": "欢迎来到 Jiumo_blog。"
+    "intro": "欢迎来到 Jiumo_page。"
   },
   "layout": {
     "showSearch": true,
@@ -34,7 +34,7 @@
       },
       {
         "id": "weather",
-        "enabled": false,
+        "enabled": true,
         "title": "天气",
         "city": "无锡",
         "lat": 31.49,
@@ -43,16 +43,16 @@
       },
       {
         "id": "ghchart",
-        "enabled": false,
+        "enabled": true,
         "title": "GitHub 贡献",
         "username": "Wineink"
       },
       {
         "id": "stats",
-        "enabled": false,
+        "enabled": true,
         "title": "访问统计",
         "showPv": true,
-        "showUv": false
+        "showUv": true
       }
     ]
   },
@@ -67,25 +67,25 @@
   "widgets": {
     "backToTop": true,
     "darkToggle": true,
-    "busuanzi": true,
+    "busuanzi": false,
     "scrollReveal": true,
     "particles": true,
     "particlesPreset": "snow",
     "typing": true,
     "typingText": [
-      "欢迎来到 Jiumo_blog。"
+      "欢迎来到 Jiumo_page。"
     ],
-    "utterances": {
-      "enabled": false,
-      "repo": "",
-      "issueTerm": "pathname",
-      "theme": "github-light"
-    },
     "gitalk": {
       "enabled": false,
       "clientID": "",
       "clientSecret": "",
       "repo": ""
+    },
+    "utterances": {
+      "enabled": false,
+      "repo": "",
+      "issueTerm": "pathname",
+      "theme": "github-light"
     }
   },
   "animation": {
