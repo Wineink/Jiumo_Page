@@ -41,7 +41,7 @@
 
     <div class="panel">
       <h2>如何生成 Token（Fine-grained，约 1 分钟）</h2>
-      <ol style="font-size:14px;color:#3a424b;padding-left:1.4em;line-height:1.9;">
+      <ol style="font-size:14px;color:var(--text);padding-left:1.4em;line-height:1.9;">
         <li>打开
           <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
             github.com/settings/personal-access-tokens/new</a>
@@ -63,7 +63,7 @@
       <div class="actions">
         <button class="btn btn-primary" id="btnNew">+ 新建文章</button>
         <a class="btn btn-ghost" href="../index.html">博客首页</a>
-        <button class="btn btn-ghost" id="btnSettings">设置</button>
+        <button class="btn btn-ghost" id="btnSettings">站点设置</button>
         <button class="btn btn-danger" id="btnLogout">登出</button>
       </div>
     </div>
@@ -119,36 +119,255 @@
       </div>
     </div>
 
-    <!-- 设置面板 -->
+    <!-- 设置面板（分类管理） -->
     <div class="panel hidden" id="settingsPanel">
-      <h2>仓库与登录设置</h2>
-      <div class="form-grid">
-        <div class="form-row">
-          <label>GitHub 用户名</label>
-          <input type="text" id="setOwner">
+      <h2>站点设置</h2>
+
+      <div class="settings-tabs" id="settingsTabs">
+        <button type="button" data-pane="paneRepo" class="active">仓库登录</button>
+        <button type="button" data-pane="paneSite">基本信息</button>
+        <button type="button" data-pane="paneProfile">头像布局</button>
+        <button type="button" data-pane="paneSidebar">侧栏模块</button>
+        <button type="button" data-pane="paneAppearance">外观主题</button>
+        <button type="button" data-pane="paneWidgets">组件模块</button>
+        <button type="button" data-pane="paneAnimation">动画</button>
+      </div>
+
+      <!-- 仓库登录 -->
+      <div class="settings-pane active" id="paneRepo">
+        <div class="form-grid">
+          <div class="form-row">
+            <label>GitHub 用户名</label>
+            <input type="text" id="setOwner">
+          </div>
+          <div class="form-row">
+            <label>仓库名</label>
+            <input type="text" id="setRepo">
+          </div>
         </div>
         <div class="form-row">
-          <label>仓库名</label>
-          <input type="text" id="setRepo">
+          <label>分支</label>
+          <input type="text" id="setBranch">
+        </div>
+        <div class="form-row">
+          <label>Token</label>
+          <input type="password" id="setToken">
+        </div>
+        <div class="form-row">
+          <button class="btn btn-primary" id="btnSaveRepo">保存仓库设置</button>
         </div>
       </div>
-      <div class="form-row">
-        <label>分支</label>
-        <input type="text" id="setBranch">
+
+      <!-- 基本信息 -->
+      <div class="settings-pane" id="paneSite">
+        <div class="form-row">
+          <label>博客名称<span class="hint">显示在首页与文章页顶部</span></label>
+          <input type="text" id="cfgSiteTitle">
+        </div>
+        <div class="form-row">
+          <label>博客简介<span class="hint">显示在标题下方</span></label>
+          <textarea id="cfgSiteDesc" rows="2"></textarea>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Token</label>
-        <input type="password" id="setToken">
+
+      <!-- 头像布局 -->
+      <div class="settings-pane" id="paneProfile">
+        <div class="form-row">
+          <label><input type="checkbox" id="cfgShowAvatar"> 显示头像模块</label>
+        </div>
+        <div class="form-row">
+          <label>头像图片地址<span class="hint">留空使用默认首字母头像；可填图床 URL 或仓库内相对路径</span></label>
+          <input type="text" id="cfgAvatarUrl" placeholder="https://… 或 images/avatar.png">
+        </div>
+        <div class="form-row">
+          <label>头像形状</label>
+          <select id="cfgAvatarShape">
+            <option value="circle">圆形</option>
+            <option value="square">方形</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>个人介绍<span class="hint">显示在头像下方</span></label>
+          <textarea id="cfgProfileIntro" rows="3"></textarea>
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn btn-primary" id="btnSaveSettings">保存设置</button>
+
+      <!-- 侧栏模块 -->
+      <div class="settings-pane" id="paneSidebar">
+        <div class="form-row">
+          <label><input type="checkbox" id="cfgSidebarEnabled"> 显示右侧模块</label>
+        </div>
+        <div class="form-row">
+          <label><input type="checkbox" id="cfgSidebarSticky"> 固定不随页面上下滑动</label>
+        </div>
+        <div class="form-row">
+          <label>模块标题</label>
+          <input type="text" id="cfgSidebarTitle">
+        </div>
+        <div class="form-row">
+          <label>模块内容<span class="hint">支持 Markdown：公告、简介、友情链接等</span></label>
+          <textarea id="cfgSidebarContent" rows="6"></textarea>
+        </div>
+      </div>
+
+      <!-- 外观主题 -->
+      <div class="settings-pane" id="paneAppearance">
+        <div class="form-grid">
+          <div class="form-row">
+            <label>主题模式</label>
+            <select id="cfgTheme">
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+              <option value="auto">跟随系统</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>按钮样式</label>
+            <select id="cfgButtonStyle">
+              <option value="rounded">圆角</option>
+              <option value="square">直角</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>浅色主题主色</label>
+            <input type="color" id="cfgAccent">
+          </div>
+          <div class="form-row">
+            <label>深色主题主色</label>
+            <input type="color" id="cfgAccentDark">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>卡片圆角（像素）</label>
+            <input type="number" id="cfgRadius" min="0" max="40">
+          </div>
+          <div class="form-row">
+            <label>正文字号（像素）</label>
+            <input type="number" id="cfgFontSize" min="12" max="24">
+          </div>
+        </div>
+      </div>
+
+      <!-- 组件模块 -->
+      <div class="settings-pane" id="paneWidgets">
+        <div class="form-grid">
+          <div class="form-row">
+            <label><input type="checkbox" id="cfgWBackTop"> 返回顶部按钮</label>
+          </div>
+          <div class="form-row">
+            <label><input type="checkbox" id="cfgWDarkToggle"> 深浅色切换按钮</label>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label><input type="checkbox" id="cfgWBusuanzi"> 不蒜子浏览量统计</label>
+          </div>
+          <div class="form-row">
+            <label><input type="checkbox" id="cfgWScrollReveal"> 滚动入场动画</label>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label><input type="checkbox" id="cfgWParticles"> 粒子背景</label>
+          </div>
+          <div class="form-row">
+            <label>粒子预设</label>
+            <select id="cfgWParticlesPreset">
+              <option value="default">连线粒子</option>
+              <option value="snow">雪花飘落</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label><input type="checkbox" id="cfgWTyping"> 打字机效果<span class="hint">显示在左侧头像卡内</span></label>
+        </div>
+        <div class="form-row">
+          <label>打字机文案<span class="hint">多句用英文分号 ; 分隔，循环播放</span></label>
+          <input type="text" id="cfgWTypingText" placeholder="欢迎来到 Jiumo_blog;记录生活与代码">
+        </div>
+
+        <div class="form-row" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+          <label style="font-size:15px;">评论区（二选一启用）</label>
+        </div>
+        <div class="form-row">
+          <label><input type="checkbox" id="cfgUtterEnabled"> 启用 utterances 评论
+            <span class="hint">评论存 GitHub Issues，需先在 utterances 官网安装到本仓库</span></label>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>utterances 仓库<span class="hint">格式 owner/repo</span></label>
+            <input type="text" id="cfgUtterRepo" placeholder="Wineink/Jiumo_blog">
+          </div>
+          <div class="form-row">
+            <label>issue-term</label>
+            <select id="cfgUtterIssueTerm">
+              <option value="pathname">pathname</option>
+              <option value="url">url</option>
+              <option value="title">title</option>
+              <option value="og:title">og:title</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label><input type="checkbox" id="cfgGitalkEnabled"> 启用 Gitalk 评论
+            <span class="hint">需注册 GitHub OAuth App 获取 clientID / clientSecret</span></label>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Gitalk clientID</label>
+            <input type="text" id="cfgGitalkClientID">
+          </div>
+          <div class="form-row">
+            <label>Gitalk clientSecret</label>
+            <input type="text" id="cfgGitalkClientSecret">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Gitalk 仓库<span class="hint">留空默认使用博客仓库</span></label>
+          <input type="text" id="cfgGitalkRepo" placeholder="Jiumo_blog">
+        </div>
+      </div>
+
+      <!-- 动画 -->
+      <div class="settings-pane" id="paneAnimation">
+        <div class="form-row">
+          <label>动画速度</label>
+          <select id="cfgAnimSpeed">
+            <option value="slow">慢</option>
+            <option value="normal">正常</option>
+            <option value="fast">快</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <p style="font-size:13px;color:var(--muted);margin:0;">
+            说明：动画速度影响滚动入场动画时长；粒子密度、打字机速度等参数在
+            <code>assets/js/ui.js</code> 中调整，后续可扩展为更多可视化配置项。
+          </p>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:22px;">
+        <button class="btn btn-primary" id="btnSaveConfig">保存站点配置</button>
         <button class="btn btn-ghost" id="btnBackFromSet">返回</button>
       </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:14px;">
+        保存站点配置会把设置写入仓库根的 site-config.json，GitHub Pages 约 1 分钟后自动生效。
+      </p>
     </div>
+  </div>
+
+  <!-- 右下角固定按钮：返回顶部 + 深浅色切换 -->
+  <div class="corner-btns">
+    <button class="corner-btn" id="btnTop" title="返回顶部" aria-label="返回顶部">↑</button>
+    <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
   <script src="../assets/js/config.js"></script>
   <script src="../assets/vendor/marked.min.js"></script>
+  <script src="../assets/js/ui.js"></script>
   <script src="../assets/js/admin.js"></script>
 </body>
 </html>

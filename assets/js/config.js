@@ -1,6 +1,13 @@
 /* ============================================================
  * Jiumo_blog 公共配置与 GitHub API 封装
  * 前台与后台共用，纯静态、零构建，直接部署到 GitHub Pages
+ *
+ * 配置体系说明（为以后开发主题做准备）：
+ * 1. window.SiteConfig      -> 部署信息（owner / repo / branch / postsDir）
+ * 2. window.DEFAULT_SITE_CONFIG -> 站点可视化配置的默认值（主题、布局、模块）
+ * 3. site-config.json（仓库根） -> 后台保存的可视化配置，前台加载后与默认值合并
+ *    所以前端显示的一切（站点名、头像、侧栏、主题色、模块开关）都可后台配置
+ * 4. SITE_CFG              -> 当前生效的合并后配置，页面元素通过 applySiteConfig 应用
  * ============================================================ */
 
 /* 站点默认配置：部署前把 owner 改成你的 GitHub 用户名 */
@@ -16,6 +23,92 @@ window.SiteConfig = {
 /* 后台设置在 localStorage 中的键名 */
 var STORE_KEY = 'jiumo_blog_admin';
 var DRAFT_KEY = 'jiumo_blog_draft';
+var THEME_KEY = 'jiumo_theme';   /* 用户手动切换的深浅主题记忆 */
+
+/* 站点可视化配置默认值：仓库根 site-config.json 不存在或字段缺失时使用 */
+window.DEFAULT_SITE_CONFIG = {
+  site: {
+    title: '墨迹博客',
+    desc: '一个托管在 GitHub Pages 上的静态博客，在 /admin 后台写作发布'
+  },
+  profile: {
+    showAvatar: true,          /* 是否显示头像 */
+    avatar: '',                /* 头像图片地址，留空则用默认首字母头像 */
+    avatarShape: 'circle',     /* circle 圆形 / square 方形 */
+    intro: '这是我的个人博客，记录生活与代码。欢迎来到 Jiumo_blog。'
+  },
+  sidebar: {
+    enabled: true,             /* 是否显示右侧模块 */
+    sticky: true,              /* 是否固定不随页面上下滑动 */
+    title: '关于本站',
+    content: '这里可以放公告、简介、友情链接等内容。\n\n> 在后台「侧栏模块」中修改，支持 Markdown。'
+  },
+  appearance: {
+    theme: 'light',            /* light 浅色 / dark 深色 / auto 跟随系统 */
+    accent: '#0f766e',         /* 浅色主题主色 */
+    accentDark: '#14b8a6',     /* 深色主题主色 */
+    buttonStyle: 'rounded',    /* rounded 圆角 / square 直角 */
+    radius: 12,                /* 卡片圆角像素 */
+    fontSize: 16               /* 正文字号像素 */
+  },
+  widgets: {
+    backToTop: true,           /* 右下角回到顶部按钮 */
+    darkToggle: true,          /* 右下角深浅色切换按钮 */
+    busuanzi: true,            /* 不蒜子浏览量统计 */
+    scrollReveal: true,        /* 滚动入场动画 */
+    particles: false,          /* 粒子背景 */
+    particlesPreset: 'default',/* default 连线粒子 / snow 雪花 */
+    typing: false,             /* 打字机效果 */
+    typingText: ['欢迎来到 Jiumo_blog', '记录生活与代码'],
+    gitalk: { enabled: false, clientID: '', clientSecret: '', repo: '' },
+    utterances: { enabled: false, repo: '', issueTerm: 'pathname', theme: 'github-light' }
+  },
+  animation: {
+    speed: 'normal'            /* slow 慢 / normal 正常 / fast 快 */
+  }
+};
+
+/* 当前生效的可视化配置（加载 site-config.json 后合并，未加载时等于默认值） */
+var SITE_CFG = JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG));
+
+/* 深度合并对象 b 到 a（用于配置与默认值合并，数组直接覆盖） */
+function deepMerge(a, b) {
+  if (!b || typeof b !== 'object') {
+    return a;
+  }
+  Object.keys(b).forEach(function (k) {
+    var v = b[k];
+    if (v && typeof v === 'object' && !Array.isArray(v) &&
+        a[k] && typeof a[k] === 'object' && !Array.isArray(a[k])) {
+      deepMerge(a[k], v);
+    } else {
+      a[k] = v;
+    }
+  });
+  return a;
+}
+
+/* site-config.json 的相对路径：后台页面在 /admin/ 目录下，要回到仓库根 */
+function siteConfigUrl() {
+  return location.pathname.indexOf('/admin/') !== -1 ?
+    '../site-config.json' : 'site-config.json';
+}
+
+/* 加载仓库根 site-config.json；文件不存在或读取失败时使用默认配置 */
+function loadSiteConfigFile() {
+  return fetch(siteConfigUrl()).then(function (res) {
+    if (!res.ok) {
+      throw new Error('config missing');
+    }
+    return res.json();
+  }).then(function (json) {
+    SITE_CFG = deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), json);
+    return SITE_CFG;
+  }).catch(function () {
+    SITE_CFG = JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG));
+    return SITE_CFG;
+  });
+}
 
 /* 读取配置：默认配置与后台保存的配置合并 */
 function getConfig() {
@@ -160,6 +253,52 @@ function removePost(filename, sha) {
       branch: c.branch,
       sha: sha
     })
+  });
+}
+
+/* ------------------------------------------------------------
+ * site-config.json 的读取与保存（后台设置面板使用）
+ * ---------------------------------------------------------- */
+/* 读取仓库根 site-config.json 内容（含 sha，用于更新），不存在则返回默认配置 */
+function getSiteConfigMeta() {
+  var c = getConfig();
+  var path = '/repos/' + c.owner + '/' + c.repo + '/contents/site-config.json?ref=' +
+    encodeURIComponent(c.branch);
+  return apiRequest(path).then(function (data) {
+    var cfg = null;
+    try {
+      cfg = JSON.parse(base64ToUtf8(data.content || '{}'));
+    } catch (e) {
+      cfg = null;
+    }
+    return {
+      sha: data.sha,
+      config: deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), cfg)
+    };
+  }).catch(function () {
+    return {
+      sha: null,
+      config: JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG))
+    };
+  });
+}
+
+/* 保存 site-config.json 到仓库根 */
+function saveSiteConfig(config, sha) {
+  var c = getConfig();
+  var payload = {
+    message: '更新站点配置：site-config.json',
+    content: utf8ToBase64(JSON.stringify(config, null, 2) + '\n'),
+    branch: c.branch
+  };
+  if (sha) {
+    payload.sha = sha;
+  }
+  var path = '/repos/' + c.owner + '/' + c.repo + '/contents/site-config.json';
+  return apiRequest(path, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
   });
 }
 
@@ -329,4 +468,153 @@ function showToast(msg, type) {
   el._timer = setTimeout(function () {
     el.className = 'toast';
   }, 2600);
+}
+
+/* ------------------------------------------------------------
+ * 主题与外观应用（前台与后台共用）
+ * ---------------------------------------------------------- */
+/* 计算当前主题：配置模式 > 跟随系统 */
+function resolveTheme(mode) {
+  var m = mode || 'light';
+  if (m === 'auto') {
+    return (window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  return m === 'dark' ? 'dark' : 'light';
+}
+
+/* 应用主题到 document，返回实际主题；用户手动切换优先于配置 */
+function applyTheme(force) {
+  var saved = null;
+  try {
+    saved = localStorage.getItem(THEME_KEY);
+  } catch (e) {}
+  var theme;
+  if (force) {
+    theme = force;
+  } else if (saved) {
+    theme = saved;
+  } else {
+    theme = resolveTheme(SITE_CFG.appearance && SITE_CFG.appearance.theme);
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+  var btn = document.getElementById('btnDark');
+  if (btn) {
+    btn.textContent = theme === 'dark' ? '☀' : '☾';
+  }
+  return theme;
+}
+
+/* 应用外观变量（主色、圆角、字号、按钮样式） */
+function applyAppearance(cfg) {
+  var a = (cfg && cfg.appearance) || {};
+  var root = document.documentElement;
+  root.style.setProperty('--accent', a.accent || '#0f766e');
+  root.style.setProperty('--accent-dark-custom', a.accentDark || '#14b8a6');
+  root.style.setProperty('--radius', (a.radius || 12) + 'px');
+  root.style.setProperty('--font-size', (a.fontSize || 16) + 'px');
+  root.classList.toggle('btn-square', a.buttonStyle === 'square');
+}
+
+/* 生成默认头像：SVG 圆形底 + 站点名首字符 */
+function defaultAvatar(title) {
+  var ch = String(title || 'B').trim().charAt(0).toUpperCase() || 'B';
+  var svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>" +
+    "<rect width='100' height='100' rx='50' fill='#0f766e'/>" +
+    "<text x='50' y='70' font-size='52' text-anchor='middle' fill='#ffffff' font-family='sans-serif'>" +
+    ch + '</text></svg>';
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+/* 应用站点可视化配置到页面元素（主题/头像/侧栏/模块/按钮） */
+function applySiteConfig(cfg) {
+  cfg = cfg || SITE_CFG;
+  var s = cfg.site || {};
+  var p = cfg.profile || {};
+  var sb = cfg.sidebar || {};
+  var w = cfg.widgets || {};
+
+  /* 站点名与简介 */
+  var titleEl = document.getElementById('siteTitle');
+  if (titleEl && s.title) {
+    titleEl.textContent = s.title;
+  }
+  var descEl = document.getElementById('siteDesc');
+  if (descEl && s.desc) {
+    descEl.textContent = s.desc;
+  }
+
+  /* 头像模块 */
+  var avatarEl = document.getElementById('profileAvatar');
+  if (avatarEl) {
+    if (p.showAvatar) {
+      avatarEl.classList.remove('hidden');
+      avatarEl.src = p.avatar || defaultAvatar(s.title);
+      avatarEl.className = 'avatar shape-' + (p.avatarShape === 'square' ? 'square' : 'circle');
+      avatarEl.onerror = function () {
+        this.src = defaultAvatar(s.title);
+      };
+    } else {
+      avatarEl.classList.add('hidden');
+    }
+  }
+  var nameEl = document.getElementById('profileName');
+  if (nameEl) {
+    nameEl.textContent = s.title || '';
+  }
+  var introEl = document.getElementById('profileIntro');
+  if (introEl) {
+    introEl.textContent = p.intro || '';
+  }
+
+  /* 右侧侧栏模块 */
+  var sbPanel = document.getElementById('sidebarPanel');
+  if (sbPanel) {
+    if (sb.enabled) {
+      sbPanel.classList.remove('hidden');
+      sbPanel.classList.toggle('sticky-panel', !!sb.sticky);
+      var sbTitle = document.getElementById('sidebarTitle');
+      if (sbTitle) {
+        sbTitle.textContent = sb.title || '';
+      }
+      var sbContent = document.getElementById('sidebarContent');
+      if (sbContent) {
+        sbContent.innerHTML = renderMarkdown(sb.content || '');
+        fixRelativeLinks(sbContent, getConfig().postsDir);
+      }
+    } else {
+      sbPanel.classList.add('hidden');
+    }
+  }
+
+  /* 外观 */
+  applyAppearance(cfg);
+  applyTheme();
+
+  /* 右下角按钮显隐 */
+  var btnDark = document.getElementById('btnDark');
+  if (btnDark) {
+    btnDark.classList.toggle('hidden', !w.darkToggle);
+  }
+  var btnTop = document.getElementById('btnTop');
+  if (btnTop) {
+    btnTop.classList.toggle('hidden', !w.backToTop);
+  }
+
+  /* 页脚浏览量标签（不蒜子）显隐 */
+  var pvWrap = document.getElementById('pvWrap');
+  if (pvWrap) {
+    pvWrap.classList.toggle('hidden', !w.busuanzi);
+  }
+}
+
+/* 按需加载外部脚本 */
+function loadScript(src, onload) {
+  var s = document.createElement('script');
+  s.src = src;
+  s.async = true;
+  if (onload) {
+    s.onload = onload;
+  }
+  document.head.appendChild(s);
 }

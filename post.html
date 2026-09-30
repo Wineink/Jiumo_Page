@@ -20,18 +20,61 @@
   </header>
 
   <main class="container">
-    <a class="back-link" href="index.html">← 返回文章列表</a>
-    <div id="postContainer">
-      <div class="state-box"><span class="spinner"></span>正在加载文章…</div>
+    <div class="layout">
+
+      <!-- 左栏：头像 + 博客介绍（可后台配置） -->
+      <aside class="layout-left">
+        <div class="profile-card">
+          <img id="profileAvatar" class="avatar shape-circle" alt="头像" src="">
+          <h2 class="profile-name" id="profileName"></h2>
+          <p class="profile-intro" id="profileIntro"></p>
+        </div>
+      </aside>
+
+      <!-- 中栏：文章详情 -->
+      <div class="layout-main">
+        <a class="back-link" href="index.html">← 返回文章列表</a>
+        <div id="postContainer">
+          <div class="state-box"><span class="spinner"></span>正在加载文章…</div>
+        </div>
+        <!-- 评论区：utterances / Gitalk 二选一，后台配置后显示 -->
+        <div class="comment-box" id="commentBox">
+          <h3 class="comment-title">评论</h3>
+          <p class="comment-tip">评论区未启用：请到管理后台「组件模块」配置 utterances 或 Gitalk。</p>
+        </div>
+      </div>
+
+      <!-- 右栏：侧栏模块（可后台配置、默认固定） -->
+      <aside class="layout-right">
+        <div class="sidebar-panel" id="sidebarPanel">
+          <div class="panel">
+            <h3 id="sidebarTitle"></h3>
+            <div class="panel-body" id="sidebarContent"></div>
+          </div>
+        </div>
+      </aside>
+
     </div>
   </main>
 
   <footer class="site-footer">
-    <div class="container">由 Jiumo_blog 驱动 · 托管于 GitHub Pages</div>
+    <div class="container">
+      由 Jiumo_blog 驱动 · 托管于 GitHub Pages
+      <span id="pvWrap"> · <span id="busuanzi_value_site_pv"></span> 次浏览</span>
+    </div>
   </footer>
+
+  <!-- 右下角固定按钮：返回顶部 + 深浅色切换 -->
+  <div class="corner-btns">
+    <button class="corner-btn" id="btnTop" title="返回顶部" aria-label="返回顶部">↑</button>
+    <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
+  </div>
 
   <script src="assets/js/config.js"></script>
   <script src="assets/vendor/marked.min.js"></script>
+  <script src="assets/js/ui.js"></script>
   <script src="assets/js/blog.js"></script>
+  <!-- 不蒜子浏览量统计（后台可开关） -->
+  <script src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>

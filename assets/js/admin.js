@@ -1,6 +1,7 @@
 /* ============================================================
  * Jiumo_blog 管理后台逻辑
  * 登录验证 / 文章列表 / 新建编辑删除 / Markdown 预览 / 草稿
+ * 站点设置（分类管理：仓库登录/基本信息/头像布局/侧栏模块/外观主题/组件模块/动画）
  * ============================================================ */
 (function () {
   /* 视图容器 */
@@ -26,7 +27,8 @@
     posts: [],
     isNew: false,
     editing: null,
-    draftTimer: null
+    draftTimer: null,
+    configSha: null
   };
 
   /* ----------------------------------------------------------
@@ -379,9 +381,10 @@
   });
 
   /* ----------------------------------------------------------
-   * 设置面板
+   * 设置面板（仓库登录 + 分类站点配置）
    * -------------------------------------------------------- */
-  function fillSettings() {
+  /* 仓库设置：填充 / 保存（localStorage） */
+  function fillRepoSettings() {
     var c = getConfig();
     document.getElementById('setOwner').value = c.owner;
     document.getElementById('setRepo').value = c.repo;
@@ -389,29 +392,210 @@
     document.getElementById('setToken').value = c.token;
   }
 
+  /* 分类标签切换 */
+  function initSettingsTabs() {
+    var tabs = document.querySelectorAll('#settingsTabs button');
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        tabs.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var panes = document.querySelectorAll('.settings-pane');
+        panes.forEach(function (p) {
+          p.classList.toggle('active', p.id === btn.getAttribute('data-pane'));
+        });
+      });
+    });
+  }
+
+  /* 从 site-config 填充站点设置表单 */
+  function fillConfigForm(cfg) {
+    cfg = cfg || {};
+    var site = cfg.site || {};
+    var profile = cfg.profile || {};
+    var sidebar = cfg.sidebar || {};
+    var appearance = cfg.appearance || {};
+    var widgets = cfg.widgets || {};
+    var anim = cfg.animation || {};
+
+    setVal('cfgSiteTitle', site.title);
+    setVal('cfgSiteDesc', site.desc);
+    setVal('cfgShowAvatar', profile.showAvatar);
+    setVal('cfgAvatarUrl', profile.avatar);
+    setVal('cfgAvatarShape', profile.avatarShape);
+    setVal('cfgProfileIntro', profile.intro);
+    setVal('cfgSidebarEnabled', sidebar.enabled);
+    setVal('cfgSidebarSticky', sidebar.sticky);
+    setVal('cfgSidebarTitle', sidebar.title);
+    setVal('cfgSidebarContent', sidebar.content);
+    setVal('cfgTheme', appearance.theme);
+    setVal('cfgAccent', appearance.accent);
+    setVal('cfgAccentDark', appearance.accentDark);
+    setVal('cfgButtonStyle', appearance.buttonStyle);
+    setVal('cfgRadius', appearance.radius);
+    setVal('cfgFontSize', appearance.fontSize);
+    setVal('cfgWBackTop', widgets.backToTop);
+    setVal('cfgWDarkToggle', widgets.darkToggle);
+    setVal('cfgWBusuanzi', widgets.busuanzi);
+    setVal('cfgWScrollReveal', widgets.scrollReveal);
+    setVal('cfgWParticles', widgets.particles);
+    setVal('cfgWParticlesPreset', widgets.particlesPreset);
+    setVal('cfgWTyping', widgets.typing);
+    setVal('cfgWTypingText',
+      (widgets.typingText || []).join(';'));
+    var utt = widgets.utterances || {};
+    setVal('cfgUtterEnabled', utt.enabled);
+    setVal('cfgUtterRepo', utt.repo);
+    setVal('cfgUtterIssueTerm', utt.issueTerm);
+    var gk = widgets.gitalk || {};
+    setVal('cfgGitalkEnabled', gk.enabled);
+    setVal('cfgGitalkClientID', gk.clientID);
+    setVal('cfgGitalkClientSecret', gk.clientSecret);
+    setVal('cfgGitalkRepo', gk.repo);
+    setVal('cfgAnimSpeed', anim.speed);
+  }
+
+  /* 从站点设置表单收集配置对象 */
+  function collectConfigForm() {
+    var typingText = val('cfgWTypingText')
+      .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
+    return {
+      site: {
+        title: val('cfgSiteTitle'),
+        desc: val('cfgSiteDesc')
+      },
+      profile: {
+        showAvatar: checked('cfgShowAvatar'),
+        avatar: val('cfgAvatarUrl'),
+        avatarShape: val('cfgAvatarShape'),
+        intro: val('cfgProfileIntro')
+      },
+      sidebar: {
+        enabled: checked('cfgSidebarEnabled'),
+        sticky: checked('cfgSidebarSticky'),
+        title: val('cfgSidebarTitle'),
+        content: val('cfgSidebarContent')
+      },
+      appearance: {
+        theme: val('cfgTheme'),
+        accent: val('cfgAccent'),
+        accentDark: val('cfgAccentDark'),
+        buttonStyle: val('cfgButtonStyle'),
+        radius: parseInt(val('cfgRadius'), 10) || 12,
+        fontSize: parseInt(val('cfgFontSize'), 10) || 16
+      },
+      widgets: {
+        backToTop: checked('cfgWBackTop'),
+        darkToggle: checked('cfgWDarkToggle'),
+        busuanzi: checked('cfgWBusuanzi'),
+        scrollReveal: checked('cfgWScrollReveal'),
+        particles: checked('cfgWParticles'),
+        particlesPreset: val('cfgWParticlesPreset'),
+        typing: checked('cfgWTyping'),
+        typingText: typingText,
+        utterances: {
+          enabled: checked('cfgUtterEnabled'),
+          repo: val('cfgUtterRepo'),
+          issueTerm: val('cfgUtterIssueTerm'),
+          theme: 'github-light'
+        },
+        gitalk: {
+          enabled: checked('cfgGitalkEnabled'),
+          clientID: val('cfgGitalkClientID'),
+          clientSecret: val('cfgGitalkClientSecret'),
+          repo: val('cfgGitalkRepo')
+        }
+      },
+      animation: {
+        speed: val('cfgAnimSpeed')
+      }
+    };
+  }
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : '';
+  }
+
+  function setVal(id, v) {
+    var el = document.getElementById(id);
+    if (!el) {
+      return;
+    }
+    if (el.type === 'checkbox') {
+      el.checked = !!v;
+    } else {
+      el.value = (v == null ? '' : v);
+    }
+  }
+
+  function checked(id) {
+    var el = document.getElementById(id);
+    return el ? el.checked : false;
+  }
+
+  /* 打开设置面板：填仓库设置 + 从远端加载站点配置 */
   document.getElementById('btnSettings').addEventListener('click', function () {
-    fillSettings();
+    fillRepoSettings();
     showPanel('settings');
+    getSiteConfigMeta().then(function (res) {
+      state.configSha = res.sha;
+      fillConfigForm(res.config);
+      /* 应用主题与外观到后台，便于预览效果 */
+      applyAppearance(res.config);
+      applyTheme();
+    }).catch(function () {
+      fillConfigForm(SITE_CFG);
+      state.configSha = null;
+    });
   });
 
-  document.getElementById('btnBackFromSet').addEventListener('click', function () {
-    showPanel('list');
-  });
-
-  document.getElementById('btnSaveSettings').addEventListener('click', function () {
+  /* 保存仓库设置（localStorage） */
+  document.getElementById('btnSaveRepo').addEventListener('click', function () {
     var s = {
       owner: document.getElementById('setOwner').value.trim(),
       repo: document.getElementById('setRepo').value.trim(),
       branch: document.getElementById('setBranch').value.trim(),
       token: document.getElementById('setToken').value.trim()
     };
+    if (!s.owner || !s.repo || !s.branch || !s.token) {
+      showToast('请填写完整仓库信息', 'error');
+      return;
+    }
     saveSettings(s);
     apiRequest('/user').then(function (user) {
-      showToast('设置已保存', 'success');
+      showToast('仓库设置已保存', 'success');
       enterApp(user);
     }).catch(function (err) {
       showToast('Token 验证失败：' + err.message, 'error');
     });
+  });
+
+  /* 保存站点配置（推送到仓库根 site-config.json） */
+  document.getElementById('btnSaveConfig').addEventListener('click', function () {
+    var cfg = collectConfigForm();
+    var btn = document.getElementById('btnSaveConfig');
+    btn.disabled = true;
+    btn.textContent = '保存中…';
+    /* 保存前重新读取远端 sha，避免覆盖他人修改 */
+    getSiteConfigMeta().then(function (res) {
+      return saveSiteConfig(cfg, res.sha);
+    }).then(function () {
+      state.configSha = null;
+      btn.disabled = false;
+      btn.textContent = '保存站点配置';
+      showToast('站点配置已保存，Pages 约 1 分钟后生效', 'success');
+      SITE_CFG = deepMerge(JSON.parse(JSON.stringify(window.DEFAULT_SITE_CONFIG)), cfg);
+      applyAppearance(SITE_CFG);
+      applyTheme();
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = '保存站点配置';
+      showToast('保存失败：' + err.message, 'error');
+    });
+  });
+
+  document.getElementById('btnBackFromSet').addEventListener('click', function () {
+    showPanel('list');
   });
 
   /* ----------------------------------------------------------
@@ -428,6 +612,16 @@
   /* ----------------------------------------------------------
    * 启动
    * -------------------------------------------------------- */
+  initSettingsTabs();
+  loadSiteConfigFile().then(function (cfg) {
+    /* 后台应用主题与外观（配合右下角深浅色按钮） */
+    applyAppearance(cfg);
+    applyTheme();
+    if (window.initJiumoUI) {
+      window.initJiumoUI();
+    }
+  });
+
   if (getConfig().token) {
     enterWithToken();
   } else {

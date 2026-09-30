@@ -1,18 +1,9 @@
 /* ============================================================
  * Jiumo_blog 前台逻辑：首页文章列表 / 文章详情
+ * 启动流程：加载 site-config.json -> 应用站点配置 -> 渲染内容 -> 启动交互模块
  * ============================================================ */
 (function () {
   var cfg = getConfig();
-
-  /* 填充站点头部 */
-  var titleEl = document.getElementById('siteTitle');
-  var descEl = document.getElementById('siteDesc');
-  if (titleEl) {
-    titleEl.textContent = cfg.siteTitle;
-  }
-  if (descEl) {
-    descEl.textContent = cfg.siteDesc;
-  }
 
   /* 取 URL 参数中的文件名，只保留最后一段并校验后缀 */
   function getFileParam() {
@@ -42,11 +33,13 @@
   /* ----------------------------------------------------------
    * 首页：文章列表
    * -------------------------------------------------------- */
-  var listEl = document.getElementById('postList');
-  var searchEl = document.getElementById('searchBox');
-
-  if (listEl) {
-    document.title = cfg.siteTitle;
+  function renderHome() {
+    var listEl = document.getElementById('postList');
+    if (!listEl) {
+      return;
+    }
+    var searchEl = document.getElementById('searchBox');
+    document.title = (SITE_CFG.site && SITE_CFG.site.title) || cfg.siteTitle;
     var allPosts = [];
 
     function renderList(posts) {
@@ -55,10 +48,11 @@
           '<div class="state-box">没有匹配的文章。可去 <a href="admin/">管理后台</a> 发布第一篇。</div>';
         return;
       }
-      listEl.innerHTML = posts.map(function (p) {
+      listEl.innerHTML = posts.map(function (p, i) {
         var meta = p.meta;
         var summary = meta.summary || makeSummary(meta.body);
-        return '<a class="post-card" href="post.html?f=' +
+        return '<a class="post-card reveal" style="transition-delay:' +
+          Math.min(i * 60, 360) + 'ms" href="post.html?f=' +
           encodeURIComponent(p.file.name) + '">' +
           '<h2>' + escapeHtml(meta.title || p.file.name) + '</h2>' +
           '<div class="post-meta"><span>' + escapeHtml(meta.date || '') +
@@ -115,29 +109,45 @@
   /* ----------------------------------------------------------
    * 详情页：渲染单篇文章
    * -------------------------------------------------------- */
-  var box = document.getElementById('postContainer');
-
-  if (box) {
+  function renderPost() {
+    var box = document.getElementById('postContainer');
+    if (!box) {
+      return;
+    }
     var file = getFileParam();
     if (!file) {
       box.innerHTML = '<div class="state-box error">缺少文章参数，请从<a href="index.html">文章列表</a>进入。</div>';
-    } else {
-      getPostRaw(file).then(function (raw) {
-        var meta = parseFrontMatter(raw);
-        box.innerHTML =
-          '<article class="post-article">' +
-          '<h1>' + escapeHtml(meta.title || file) + '</h1>' +
-          '<div class="post-meta"><span>' + escapeHtml(meta.date || '') +
-          '</span> ' + tagsHtml(meta.tags) + '</div>' +
-          renderMarkdown(meta.body) +
-          '</article>';
-        var article = box.querySelector('.post-article');
-        fixRelativeLinks(article, cfg.postsDir);
-        document.title = (meta.title || file) + ' - ' + cfg.siteTitle;
-      }).catch(function (err) {
-        box.innerHTML = '<div class="state-box error">文章加载失败：' +
-          escapeHtml(err.message) + '</div>';
-      });
+      return;
     }
+    getPostRaw(file).then(function (raw) {
+      var meta = parseFrontMatter(raw);
+      box.innerHTML =
+        '<article class="post-article reveal">' +
+        '<h1>' + escapeHtml(meta.title || file) + '</h1>' +
+        '<div class="post-meta"><span>' + escapeHtml(meta.date || '') +
+        '</span> ' + tagsHtml(meta.tags) + '</div>' +
+        renderMarkdown(meta.body) +
+        '</article>';
+      var article = box.querySelector('.post-article');
+      fixRelativeLinks(article, cfg.postsDir);
+      document.title = (meta.title || file) + ' - ' +
+        ((SITE_CFG.site && SITE_CFG.site.title) || cfg.siteTitle);
+    }).catch(function (err) {
+      box.innerHTML = '<div class="state-box error">文章加载失败：' +
+        escapeHtml(err.message) + '</div>';
+    });
   }
+
+  /* ----------------------------------------------------------
+   * 启动：先加载站点配置再渲染
+   * -------------------------------------------------------- */
+  loadSiteConfigFile().then(function (siteCfg) {
+    applySiteConfig(siteCfg);
+    renderHome();
+    renderPost();
+    /* 启动交互模块（右下角按钮/滚动动画/粒子/打字机/评论区） */
+    if (window.initJiumoUI) {
+      window.initJiumoUI();
+    }
+  });
 })();

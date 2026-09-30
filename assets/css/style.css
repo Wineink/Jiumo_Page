@@ -1,6 +1,11 @@
 /* ============================================================
  * Jiumo_blog 全局样式（前台与后台共用）
  * 简约暖白 + 墨绿强调色，响应式布局
+ *
+ * 主题说明（为以后开发主题做准备）：
+ * 1. 所有颜色都走 CSS 变量，换主题只需改 :root / html[data-theme="dark"]
+ * 2. --accent / --accent-dark-custom / --radius / --font-size 由后台外观配置动态注入
+ * 3. 按钮样式：html.btn-square 时按钮变直角，默认圆角
  * ============================================================ */
 
 :root {
@@ -10,13 +15,38 @@
   --muted: #6f7782;
   --border: #e6e3dc;
   --accent: #0f766e;
+  --accent-dark-custom: #14b8a6;
   --accent-dark: #115e59;
   --accent-soft: #e6f2f0;
   --danger: #dc2626;
   --danger-soft: #fdecec;
   --code-bg: #f4f3ef;
   --radius: 12px;
+  --font-size: 16px;
+  --btn-radius: 9px;
   --shadow: 0 1px 2px rgba(31, 41, 51, 0.05), 0 6px 18px rgba(31, 41, 51, 0.06);
+}
+
+/* 深色主题：切换 html[data-theme="dark"] 即整体换肤 */
+html[data-theme="dark"] {
+  --bg: #12161b;
+  --surface: #1b222a;
+  --text: #e6edf3;
+  --muted: #9aa7b4;
+  --border: #2c3540;
+  --accent: var(--accent-dark-custom, #14b8a6);
+  --accent-dark: #2dd4bf;
+  --accent-soft: rgba(20, 184, 166, 0.14);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --code-bg: #232a31;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* 按钮样式：直角模式 */
+html.btn-square {
+  --btn-radius: 2px;
+  --radius: 4px;
 }
 
 * {
@@ -33,7 +63,7 @@ body {
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-  font-size: 16px;
+  font-size: var(--font-size);
   line-height: 1.7;
   padding-bottom: 64px;
 }
@@ -48,32 +78,187 @@ a:hover {
 }
 
 .container {
-  max-width: 760px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+/* ============================================================
+ * 三栏自适应布局
+ * 左栏：头像 + 博客介绍（profile）
+ * 中栏：主要内容（文章列表 / 文章详情）
+ * 右栏：侧栏模块（可配置、默认固定不随页面滑动）
+ * 窄屏时自动折叠为单栏
+ * ============================================================ */
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+.layout-left {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.layout-main {
+  min-width: 0;
+}
+
+.layout-right {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+}
+
+.sticky-panel {
+  position: sticky;
+  top: 24px;
+}
+
+/* 中屏：隐藏右栏，左栏保留 */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .layout-right {
+    display: none;
+  }
+}
+
+/* 窄屏：单栏，左栏转为顶部资料区 */
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-left {
+    position: static;
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .layout-left .profile-card {
+    width: 100%;
+  }
+
+  .layout-right {
+    display: block;
+    position: static;
+  }
+}
+
+/* ------------------------------------------------------------
+ * 头像模块（左侧资料卡）
+ * ---------------------------------------------------------- */
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px 22px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.avatar {
+  width: 108px;
+  height: 108px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 14px;
+  border: 3px solid var(--accent-soft);
+  background: var(--code-bg);
+}
+
+.avatar.shape-circle {
+  border-radius: 50%;
+}
+
+.avatar.shape-square {
+  border-radius: calc(var(--radius) - 4px);
+}
+
+.profile-name {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.profile-intro {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.profile-typing {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--accent);
+  min-height: 1.5em;
+}
+
+/* ------------------------------------------------------------
+ * 右侧侧栏模块
+ * ---------------------------------------------------------- */
+.sidebar-panel .panel {
+  margin-bottom: 0;
+}
+
+.sidebar-panel h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-panel .panel-body {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+.sidebar-panel .panel-body p {
+  margin: 0.6em 0;
+}
+
+.sidebar-panel .panel-body blockquote {
+  margin: 0.8em 0;
+  padding: 0.3em 1em;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
 }
 
 /* ------------------------------------------------------------
  * 站点头部
  * ---------------------------------------------------------- */
 .site-header {
-  padding: 48px 0 28px;
+  padding: 36px 0 22px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 36px;
+  margin-bottom: 30px;
 }
 
 .site-header .inner {
-  max-width: 760px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
 
 .site-title {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.5px;
   margin: 0;
@@ -89,7 +274,7 @@ a:hover {
 }
 
 .site-subtitle {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: var(--muted);
   font-size: 14px;
 }
@@ -164,9 +349,9 @@ a:hover {
 
 .post-card:hover {
   box-shadow: var(--shadow);
-  border-color: #d9d5cb;
+  border-color: var(--accent);
   text-decoration: none;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .post-card h2 {
@@ -189,7 +374,7 @@ a:hover {
 
 .post-summary {
   margin: 0;
-  color: #444c56;
+  color: var(--muted);
   font-size: 15px;
 }
 
@@ -254,7 +439,7 @@ a:hover {
   padding: 0.4em 1.1em;
   border-left: 4px solid var(--accent);
   background: var(--accent-soft);
-  color: #3d4a52;
+  color: var(--text);
   border-radius: 0 8px 8px 0;
 }
 
@@ -269,6 +454,10 @@ a:hover {
   font-size: 0.88em;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   color: #9f1239;
+}
+
+html[data-theme="dark"] .post-article code {
+  color: #f0abfc;
 }
 
 .post-article pre {
@@ -331,6 +520,21 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
+ * 评论区
+ * ---------------------------------------------------------- */
+.comment-box {
+  margin-top: 30px;
+}
+
+.comment-box .comment-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------
  * 状态提示
  * ---------------------------------------------------------- */
 .state-box {
@@ -364,7 +568,7 @@ a:hover {
  * 后台通用
  * ---------------------------------------------------------- */
 .admin-wrap {
-  max-width: 920px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 0 20px 60px;
 }
@@ -396,6 +600,7 @@ a:hover {
   border-radius: var(--radius);
   padding: 28px 30px;
   margin-bottom: 22px;
+  box-shadow: var(--shadow);
 }
 
 .panel h2 {
@@ -411,7 +616,7 @@ a:hover {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #3a424b;
+  color: var(--muted);
   margin-bottom: 6px;
 }
 
@@ -424,6 +629,8 @@ a:hover {
 
 .form-row input[type="text"],
 .form-row input[type="password"],
+.form-row input[type="number"],
+.form-row input[type="color"],
 .form-row textarea,
 .form-row select {
   width: 100%;
@@ -431,10 +638,25 @@ a:hover {
   font-size: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   outline: none;
   font-family: inherit;
+}
+
+.form-row input[type="color"] {
+  width: 64px;
+  height: 38px;
+  padding: 3px;
+  cursor: pointer;
+}
+
+.form-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  vertical-align: middle;
+  margin-right: 8px;
 }
 
 .form-row input:focus,
@@ -463,7 +685,7 @@ a:hover {
   padding: 9px 18px;
   font-size: 14px;
   font-weight: 550;
-  border-radius: 8px;
+  border-radius: var(--btn-radius);
   border: 1px solid transparent;
   cursor: pointer;
   background: var(--code-bg);
@@ -496,7 +718,7 @@ a:hover {
 }
 
 .btn-danger:hover {
-  background: #fadcdc;
+  background: rgba(248, 113, 113, 0.2);
 }
 
 .btn-ghost {
@@ -506,7 +728,7 @@ a:hover {
 }
 
 .btn-ghost:hover {
-  border-color: #cdd2d8;
+  border-color: var(--accent);
   color: var(--text);
 }
 
@@ -599,7 +821,7 @@ a:hover {
 }
 
 .tabs button.active {
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -616,7 +838,7 @@ a:hover {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 20px 24px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .filename-box {
@@ -629,12 +851,113 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
+ * 后台设置分类标签
+ * ---------------------------------------------------------- */
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.settings-tabs button {
+  padding: 8px 18px;
+  font-size: 14px;
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.settings-tabs button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.settings-pane {
+  display: none;
+}
+
+.settings-pane.active {
+  display: block;
+}
+
+/* ------------------------------------------------------------
+ * 右下角固定按钮（返回顶部 / 深浅色切换）
+ * ---------------------------------------------------------- */
+.corner-btns {
+  position: fixed;
+  right: 22px;
+  bottom: 70px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.corner-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, background 0.15s, color 0.15s, opacity 0.2s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.corner-btn.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.corner-btn:hover {
+  transform: translateY(-2px);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 深浅色切换按钮默认一直显示 */
+#btnDark {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------
+ * 粒子背景
+ * ---------------------------------------------------------- */
+#particles-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.layout,
+.site-header .inner,
+.site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------
  * Toast
  * ---------------------------------------------------------- */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 36px;
+  bottom: 60px;
   transform: translateX(-50%) translateY(20px);
   background: #232a31;
   color: #fff;
@@ -670,7 +993,7 @@ a:hover {
  * ---------------------------------------------------------- */
 @media (max-width: 640px) {
   .site-header {
-    padding: 36px 0 22px;
+    padding: 28px 0 18px;
   }
 
   .site-header .inner {
@@ -701,5 +1024,13 @@ a:hover {
 
   .admin-item .item-actions {
     justify-content: flex-end;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-left {
+    position: static;
   }
 }
