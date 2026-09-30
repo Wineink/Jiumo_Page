@@ -99,11 +99,16 @@
         });
       }));
     }).then(function (posts) {
-      allPosts = posts.filter(Boolean).sort(function (a, b) {
-        var da = a.meta.date || a.file.name;
-        var db = b.meta.date || b.file.name;
-        return da < db ? 1 : da > db ? -1 : 0;
-      });
+      allPosts = posts.filter(Boolean)
+        /* 待发布文章（front matter draft: true）不出现在首页 */
+        .filter(function (p) {
+          return !(p.meta.draft === 'true' || p.meta.draft === true);
+        })
+        .sort(function (a, b) {
+          var da = a.meta.date || a.file.name;
+          var db = b.meta.date || b.file.name;
+          return da < db ? 1 : da > db ? -1 : 0;
+        });
       renderList(allPosts);
     }).catch(function (err) {
       var tip = '文章加载失败：' + err.message;
@@ -134,6 +139,12 @@
     }
     getPostRaw(file).then(function (raw) {
       var meta = parseFrontMatter(raw);
+      /* 待发布文章不允许前台直接访问 */
+      if (meta.draft === 'true' || meta.draft === true) {
+        box.innerHTML = '<div class="state-box">这篇文章还没有发布，稍后再来看看吧。<br>' +
+          '<small>发布入口：后台「文章管理」→ 对应文章 → 发布</small></div>';
+        return;
+      }
       box.innerHTML =
         '<article class="post-article reveal">' +
         '<h1>' + escapeHtml(meta.title || file) + '</h1>' +

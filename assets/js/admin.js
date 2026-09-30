@@ -163,7 +163,7 @@
   function renderAdminList() {
     if (!state.posts.length) {
       adminList.innerHTML =
-        '<div class="state-box">还没有文章，点击右上角「+ 新建文章」开始。</div>';
+        '<div class="state-box">还没有文章，点击右上角「+ 新建文章」或「导入 MD」开始。</div>';
       return;
     }
     adminList.innerHTML = state.posts.map(function (p) {
@@ -171,13 +171,23 @@
       var tags = p.meta.tags.map(function (t) {
         return '<span class="tag">' + escapeHtml(t) + '</span>';
       }).join(' ');
+      var isDraft = p.meta.draft === 'true' || p.meta.draft === true;
+      var badge = isDraft ?
+        '<span class="badge badge-draft" title="待发布：不会显示在首页">待发布</span>' :
+        '<span class="badge badge-pub" title="已发布：显示在首页">已发布</span>';
+      var toggleBtn = isDraft ?
+        '<button class="btn btn-primary btn-sm" data-action="publish" data-name="' +
+          encodeURIComponent(p.name) + '">发布</button>' :
+        '<button class="btn btn-ghost btn-sm" data-action="unpublish" data-name="' +
+          encodeURIComponent(p.name) + '">撤回</button>';
       return '<div class="admin-item">' +
         '<div class="item-main">' +
-          '<div class="item-title">' + escapeHtml(title) + '</div>' +
+          '<div class="item-title">' + escapeHtml(title) + ' ' + badge + '</div>' +
           '<div class="item-sub">' + escapeHtml(p.meta.date || '') + ' ' +
             tags + ' · ' + escapeHtml(p.name) + '</div>' +
         '</div>' +
         '<div class="item-actions">' +
+          toggleBtn +
           '<button class="btn btn-ghost btn-sm" data-action="edit" data-name="' +
             encodeURIComponent(p.name) + '">编辑</button>' +
           '<button class="btn btn-danger btn-sm" data-action="del" data-name="' +
@@ -193,12 +203,40 @@
       return;
     }
     var name = decodeURIComponent(btn.getAttribute('data-name'));
-    if (btn.getAttribute('data-action') === 'edit') {
+    var action = btn.getAttribute('data-action');
+    if (action === 'edit') {
       openEditor(name);
-    } else {
+    } else if (action === 'del') {
       confirmDelete(name);
+    } else if (action === 'publish') {
+      toggleDraft(name, false);
+    } else if (action === 'unpublish') {
+      toggleDraft(name, true);
     }
   });
+
+  /* 发布 / 撤回：修改文章 front matter 的 draft 字段并提交仓库 */
+  function toggleDraft(name, toDraft) {
+    var p = findPost(name);
+    var title = (p && p.meta.title) || name;
+    var actionText = toDraft ? '撤回《' + title + '》为待发布？\n撤回后文章将不再显示在首页。' :
+      '发布《' + title + '》？\n发布后首页 1 分钟内可见。';
+    if (!window.confirm(actionText)) {
+      return;
+    }
+    getPostMeta(name).then(function (meta) {
+      var fm = parseFrontMatter(base64ToUtf8(meta.content));
+      fm.draft = toDraft;
+      var full = buildFrontMatter(fm) + fm.body;
+      return savePost(name, full, meta.sha,
+        toDraft ? '撤回文章（待发布）：' + name : '发布文章：' + name);
+    }).then(function () {
+      showToast(toDraft ? '已撤回为待发布，首页不再显示' : '已发布，首页 1 分钟内可见', 'success');
+      loadPosts();
+    }).catch(function (err) {
+      showToast('操作失败：' + err.message, 'error');
+    });
+  }
 
   function findPost(name) {
     for (var i = 0; i < state.posts.length; i++) {
@@ -222,6 +260,75 @@
       loadPosts();
     }).catch(function (err) {
       showToast('删除失败：' + err.message, 'error');
+    });
+  }
+
+  /* ----------------------------------------------------------
+   * 导入 MD 文章（单个或批量，导入后一律为待发布状态）
+   * -------------------------------------------------------- */
+  var importInput = document.getElementById('importInput');
+  var btnImport = document.getElementById('btnImport');
+  if (btnImport && importInput) {
+    btnImport.addEventListener('click', function () {
+      importInput.click();
+    });
+    importInput.addEventListener('change', function () {
+      var files = Array.prototype.slice.call(importInput.files || []);
+      if (!files.length) {
+        return;
+      }
+      importInput.value = '';
+      var btn = btnImport;
+      btn.disabled = true;
+      btn.textContent = '导入中…（' + files.length + ' 篇）';
+      var queue = files.map(function (f) { return importMdFile(f); });
+      Promise.all(queue).then(function (results) {
+        var ok = results.filter(Boolean).length;
+        btn.disabled = false;
+        btn.textContent = '导入 MD';
+        showToast('导入完成：成功 ' + ok + ' 篇' + (files.length - ok ? '，失败 ' + (files.length - ok) + ' 篇' : '') +
+          '，均为待发布状态，可在列表中确认后再发布', ok ? 'success' : 'error');
+        loadPosts();
+      });
+    });
+  }
+
+  /* 读取本地 .md 文件 → 解析 front matter → 提交为 draft: true（待发布） */
+  function importMdFile(file) {
+    return new Promise(function (resolve) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var raw = String(reader.result || '');
+        var meta = parseFrontMatter(raw);
+        var nameBase = file.name.replace(/\.md$/i, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+        if (!meta.title) {
+          meta.title = nameBase || '未命名文章';
+        }
+        if (!meta.date) {
+          var m = /^(\d{4}-\d{2}-\d{2})/.exec(file.name);
+          meta.date = m ? m[1] : todayStr();
+        }
+        if (!meta.tags) {
+          meta.tags = [];
+        }
+        meta.draft = true;
+        var filename = buildFilename(meta.title, meta.date);
+        /* 同名处理：若已存在则追加 -2、-3… */
+        var base = filename;
+        var i = 2;
+        while (state.posts.some(function (p) { return p.name === filename; })) {
+          filename = base.replace(/\.md$/, '') + '-' + i + '.md';
+          i++;
+        }
+        var full = buildFrontMatter(meta) + meta.body;
+        savePost(filename, full, null, '导入文章（待发布）：' + filename).then(function () {
+          resolve(true);
+        }).catch(function () {
+          resolve(false);
+        });
+      };
+      reader.onerror = function () { resolve(false); };
+      reader.readAsText(file, 'utf-8');
     });
   }
 

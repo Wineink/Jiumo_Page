@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=4">
+  <link rel="stylesheet" href="../assets/css/style.css?v=5">
 </head>
 <body>
 
@@ -88,7 +88,12 @@
         <div class="panel">
           <div class="editor-toolbar" style="margin-bottom:4px;">
             <h2 style="margin:0;">全部文章</h2>
-            <button class="btn btn-primary" id="btnNew">+ 新建文章</button>
+            <div class="actions">
+              <button class="btn btn-ghost" id="btnImport">导入 MD</button>
+              <input type="file" id="importInput" accept=".md,text/markdown" multiple
+                     style="display:none;" title="可多选 .md 文件批量导入">
+              <button class="btn btn-primary" id="btnNew">+ 新建文章</button>
+            </div>
           </div>
           <div class="admin-list" id="adminList">
             <div class="state-box"><span class="spinner"></span>正在加载…</div>
@@ -396,14 +401,14 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=4"></script>
-  <script src="../assets/vendor/marked.min.js?v=4"></script>
-  <script src="../assets/js/ui.js?v=4"></script>
+  <script src="../assets/js/config.js?v=5"></script>
+  <script src="../assets/vendor/marked.min.js?v=5"></script>
+  <script src="../assets/js/ui.js?v=5"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=4"></script>
-  <script src="../modules/weather/module.js?v=4"></script>
-  <script src="../modules/ghchart/module.js?v=4"></script>
-  <script src="../modules/stats/module.js?v=4"></script>
-  <script src="../assets/js/admin.js?v=4"></script>
+  <script src="../modules/datetime/module.js?v=5"></script>
+  <script src="../modules/weather/module.js?v=5"></script>
+  <script src="../modules/ghchart/module.js?v=5"></script>
+  <script src="../modules/stats/module.js?v=5"></script>
+  <script src="../assets/js/admin.js?v=5"></script>
 </body>
 </html>

@@ -269,11 +269,12 @@ function listPostFiles() {
   });
 }
 
-/* 读取文章原文：优先走 raw（不占 API 限额），5 秒超时后回退 Contents API（支持私有仓库） */
+/* 读取文章原文：优先走 raw（不占 API 限额），加时间戳绕过 raw CDN 缓存，
+ * 保证发布/撤回后前台立即读到最新内容；5 秒超时后回退 Contents API（支持私有仓库） */
 function getPostRaw(filename) {
   var c = getConfig();
   var rawUrl = 'https://raw.githubusercontent.com/' + c.owner + '/' + c.repo +
-    '/' + c.branch + '/' + c.postsDir + '/' + filename;
+    '/' + c.branch + '/' + c.postsDir + '/' + filename + '?t=' + Date.now();
   var ctrl = new AbortController();
   var timer = setTimeout(function () {
     ctrl.abort();
@@ -463,6 +464,9 @@ function buildFrontMatter(meta) {
   var lines = ['---'];
   lines.push('title: ' + quoteYaml(meta.title));
   lines.push('date: ' + meta.date);
+  if (meta.draft === true || meta.draft === 'true') {
+    lines.push('draft: true');
+  }
   if (tags.length) {
     lines.push('tags: [' + tags.map(quoteYaml).join(', ') + ']');
   }
