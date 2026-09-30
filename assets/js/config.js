@@ -288,14 +288,18 @@ function getPostRaw(filename) {
   });
 }
 
-/* Contents API 直接读原文（带可选 Token，实时无缓存） */
+/* Contents API 读原文：标准 JSON 响应 + base64 解码（与后台 admin 读取一致，
+ * 不依赖 Accept 媒体类型，避免跨域/缓存导致返回 JSON 而非原文的问题） */
 function apiGetRaw(c, filename, token) {
   var url = 'https://api.github.com/repos/' + c.owner + '/' + c.repo +
     '/contents/' + c.postsDir + '/' + encodeURIComponent(filename) +
     '?ref=' + encodeURIComponent(c.branch);
-  var headers = { Accept: 'application/vnd.github.raw' };
+  var headers = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
   if (token) {
-    headers.Authorization = 'token ' + token;
+    headers.Authorization = 'Bearer ' + token;
   }
   var ctrl = new AbortController();
   var timer = setTimeout(function () {
@@ -306,7 +310,9 @@ function apiGetRaw(c, filename, token) {
     if (!res.ok) {
       throw new Error('API 加载失败：HTTP ' + res.status);
     }
-    return res.text();
+    return res.json().then(function (data) {
+      return base64ToUtf8(data.content || '');
+    });
   });
 }
 
