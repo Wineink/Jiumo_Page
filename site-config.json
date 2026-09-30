@@ -16,7 +16,7 @@
     "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「侧栏模块」中修改，支持 Markdown。"
   },
   "appearance": {
-    "theme": "dark",
+    "theme": "light",
     "accent": "#0f766e",
     "accentDark": "#14b8a6",
     "buttonStyle": "rounded",
