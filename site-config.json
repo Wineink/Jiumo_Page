@@ -22,7 +22,8 @@
         "id": "about",
         "enabled": false,
         "title": "关于本站",
-        "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「组件模块」中修改，支持 Markdown。"
+        "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「组件模块」中修改，支持 Markdown。",
+        "position": "left"
       },
       {
         "id": "datetime",
@@ -30,7 +31,8 @@
         "title": "日期时间",
         "showDate": true,
         "showTime": true,
-        "format12": false
+        "format12": false,
+        "position": "right"
       },
       {
         "id": "weather",
@@ -39,21 +41,24 @@
         "city": "无锡",
         "lat": 31.49,
         "lon": 120.31,
-        "unit": "celsius"
+        "unit": "celsius",
+        "position": "right"
       },
       {
         "id": "stats",
         "enabled": true,
         "title": "访问统计",
         "showPv": true,
-        "showUv": true
+        "showUv": true,
+        "position": "right"
       },
       {
         "id": "ghchart",
         "enabled": true,
         "title": "GitHub 贡献",
         "username": "jiumooo",
-        "position": "left"
+        "position": "left",
+        "period": "quarter"
       }
     ]
   },
@@ -78,6 +83,7 @@
     "typingText": [
       "欢迎来到酒墨的页面。"
     ],
+    "themeAnim": "ripple",
     "gitalk": {
       "enabled": false,
       "clientID": "",
