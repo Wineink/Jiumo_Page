@@ -17,16 +17,16 @@ Jiumo_blog/
 ├── index.html                # 博客首页
 ├── post.html                 # 文章详情页
 ├── site-config.json          # 站点配置（标题/外观/组件开关）
-│   ├── admin                 # 管理后台
+├── admin/                    # 管理后台
 │   └── index.html            # 管理后台
-│   ├── assets                # 站点资源
-│   ├── assets/css/style.css  # 全局样式
-│   ├── assets/js/config.js   # 站点配置 + GitHub API 封装（改这里）
-│   ├── assets/js/blog.js     # 前台逻辑
-│   ├── assets/js/ui.js       # 前端交互（返回顶部/主题切换/粒子等）
-│   ├── assets/js/admin.js    # 后台逻辑
-│   └── assets/vendor/marked.min.js# Markdown 渲染库（本地内置）
-├── posts                     # 文章目录（Markdown 文件）
+├── assets/                   # 站点资源
+│   ├── css/style.css         # 全局样式
+│   ├── js/config.js          # 站点配置 + GitHub API 封装（改这里）
+│   ├── js/blog.js            # 前台逻辑
+│   ├── js/ui.js              # 前端交互（返回顶部/主题切换/粒子等）
+│   ├── js/admin.js           # 后台逻辑
+│   └── vendor/marked.min.js  # Markdown 渲染库（本地内置）
+├── posts/                    # 文章目录（Markdown 文件）
 └── .nojekyll                 # 禁用 GitHub Pages 的 Jekyll 处理
 ```
 
