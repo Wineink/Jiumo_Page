@@ -516,6 +516,7 @@
   document.getElementById('btnNew').addEventListener('click', function () {
     state.isNew = true;
     state.editing = null;
+    sessionUploaded = {};      /* 新文章：重置会话图片记录 */
     resetEditor();
     filenameBox.textContent = '新文章，保存时自动生成文件名：' + todayStr() + '-标题.md';
     editorPanel.classList.remove('hidden');
@@ -526,6 +527,7 @@
   function openEditor(name) {
     /* 从草稿箱点「编辑」时切回文章管理视图（编辑器在文章管理视图内） */
     switchView('posts');
+    sessionUploaded = {};      /* 打开文章：重置会话图片记录（只清理本文章上传的图） */
     getPostMeta(name).then(function (data) {
       var meta = parseFrontMatter(base64ToUtf8(data.content));
       state.isNew = false;
@@ -575,6 +577,9 @@
    * -------------------------------------------------------- */
   var MAX_IMG_SIZE = 5 * 1024 * 1024;   /* 单张 5MB 上限 */
 
+  /* 本会话（当前编辑文章）上传过的图片：保存时若正文不再引用则从仓库删除 */
+  var sessionUploaded = {};             /* url -> 仓库内路径 assets/img/xx.png */
+
   function uploadImageFile(file, done) {
     if (!file || file.type.indexOf('image/') !== 0) {
       return done(false);
@@ -603,6 +608,7 @@
           /* 图片 URL 用 GitHub Pages 同源地址（owner.github.io/repo/assets/img/xx） */
           var url = 'https://' + (c.owner || '').toLowerCase() + '.github.io/' +
             (c.repo || '') + '/assets/img/' + name;
+          sessionUploaded[url] = path;
           done(url);
         }).catch(function (err) {
           showToast('图片上传失败：' + err.message, 'error');
@@ -622,6 +628,62 @@
     textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
     textarea.selectionStart = textarea.selectionEnd = start + text.length;
     textarea.focus();
+  }
+
+  /* 提取正文中的全部图片引用 URL */
+  function parseImgRefs(text) {
+    var re = /!\[[^\]]*\]\(([^)]+)\)/g;
+    var urls = [];
+    var m;
+    while ((m = re.exec(text || '')) !== null) {
+      urls.push(m[1].trim());
+    }
+    return urls;
+  }
+
+  /* 删除仓库内一个文件（先取 sha 再 DELETE） */
+  function deleteRepoFile(path) {
+    var c = getConfig();
+    var api = '/repos/' + c.owner + '/' + c.repo + '/contents/' + encodeURIComponent(path);
+    return apiRequest(api).then(function (m) {
+      return apiRequest(api, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          message: '删除图片 ' + path.split('/').pop(),
+          sha: m.sha,
+          branch: c.branch
+        })
+      });
+    });
+  }
+
+  /* 保存后清理：本会话上传但正文已不再引用的图片，从仓库同步删除 */
+  function cleanupUnusedImages(bodyText) {
+    var urls = Object.keys(sessionUploaded);
+    if (!urls.length) {
+      return Promise.resolve();
+    }
+    var refs = parseImgRefs(bodyText);
+    var unused = urls.filter(function (u) {
+      return refs.indexOf(u) === -1;
+    });
+    if (!unused.length) {
+      return Promise.resolve();
+    }
+    return Promise.all(unused.map(function (u) {
+      var path = sessionUploaded[u];
+      return deleteRepoFile(path).then(function () {
+        delete sessionUploaded[u];
+        return true;
+      }).catch(function () {
+        return false;
+      });
+    })).then(function (results) {
+      var ok = results.filter(Boolean).length;
+      if (ok) {
+        showToast('已同步清理 ' + ok + ' 张不再引用的图片（仓库已删除）', 'success');
+      }
+    });
   }
 
   editBody.addEventListener('paste', function (e) {
@@ -781,6 +843,8 @@
       btn.textContent = btnText;
       editorPanel.classList.add('hidden');
       loadPosts();
+      /* 正文已不再引用的会话图片，从仓库同步删除 */
+      cleanupUnusedImages(f.body);
     }).catch(function (err) {
       btn.disabled = false;
       btn.textContent = btnText;
