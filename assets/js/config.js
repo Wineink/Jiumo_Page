@@ -29,7 +29,9 @@ var THEME_KEY = 'jiumo_theme';   /* 用户手动切换的深浅主题记忆 */
 window.DEFAULT_SITE_CONFIG = {
   site: {
     title: '酒墨的页面',
-    desc: '一个托管在 GitHub Pages 上的静态页面，在 /admin 后台管理'
+    desc: '一个托管在 GitHub Pages 上的静态页面，在 /admin 后台管理',
+    descTyping: true,          /* 站点描述打字机效果（逐字打出，打完一直显示） */
+    descTypingSpeed: 80        /* 站点描述打字速度（每字毫秒，默认80） */
   },
   profile: {
     showAvatar: true,          /* 是否显示头像 */
@@ -646,14 +648,67 @@ function buildFilename(title, date) {
   return (date || todayStr()) + '-' + slugify(title) + '.md';
 }
 
-/* 通用打字机渲染：逐字打出文字，打字时显示光标，打完光标消失、文本一直保留 */
-function typeIntoElement(el, text, speed) {
+/* ============================================================
+ * 全局打字机队列：所有打字机效果统一排队、依次进行
+ * 每个打字任务先随机延迟（默认 400-1400ms），再逐字打出，
+ * 一个打完后才开始下一个——页面各处不会同时打印、不会重复。
+ * ============================================================ */
+var _twQueue = [];
+var _twTimers = [];
+var _twRunning = false;
+
+/* 入队一个打字机任务；空闲时立即开始 */
+function queueTypewriter(el, text, speed, dMin, dMax) {
+  if (!el || !text) {
+    return;
+  }
+  _twQueue.push({
+    el: el,
+    text: text,
+    speed: speed || 80,
+    dMin: dMin || 400,
+    dMax: dMax || 1400
+  });
+  if (!_twRunning) {
+    _twNext();
+  }
+}
+
+function _twNext() {
+  if (!_twQueue.length) {
+    _twRunning = false;
+    return;
+  }
+  _twRunning = true;
+  var job = _twQueue.shift();
+  var delay = job.dMin + Math.random() * (job.dMax - job.dMin);
+  var t = setTimeout(function () {
+    typeIntoElement(job.el, job.text, job.speed, _twNext);
+  }, delay);
+  _twTimers.push(t);
+}
+
+/* 清空队列与所有进行中的打字（配置更新/重建页面时调用，避免残留重打） */
+function clearTypewriters() {
+  _twTimers.forEach(function (t) {
+    try { clearTimeout(t); clearInterval(t); } catch (e) {}
+  });
+  _twTimers = [];
+  _twQueue = [];
+  _twRunning = false;
+}
+
+/* 单段打字机渲染：逐字打出，打字时显示光标，打完光标消失、文本一直保留 */
+function typeIntoElement(el, text, speed, onDone) {
+  if (!el) {
+    if (onDone) onDone();
+    return;
+  }
   el.textContent = '';
   var i = 0;
   var cursor = document.createElement('span');
   cursor.className = 'typing-cursor';
   cursor.textContent = '▍';
-  cursor.style.display = 'inline';
   el.appendChild(cursor);
   var timer = setInterval(function () {
     i++;
@@ -661,8 +716,10 @@ function typeIntoElement(el, text, speed) {
     if (i >= text.length) {
       clearInterval(timer);
       el.textContent = text;   /* 打完：纯文本，去掉光标，一直保留 */
+      if (onDone) onDone();
     }
   }, speed || 80);
+  _twTimers.push(timer);
 }
 
 function escapeHtml(s) {
@@ -811,16 +868,40 @@ function applySiteConfig(cfg) {
   if (nameEl) {
     nameEl.textContent = s.title || '';
   }
+  /* 打字机区域：统一排队依次打字（随机延迟），先清空上次任务避免残留 */
+  clearTypewriters();
+
+  var descEl = document.getElementById('siteDesc');
+  if (descEl && s.desc) {
+    if (s.descTyping !== false) {
+      queueTypewriter(descEl, s.desc, s.descTypingSpeed || 80);
+    } else {
+      descEl.textContent = s.desc;
+    }
+  }
+
+  /* 欢迎语打字机：文案仅使用后台「typingText」，不再回退到个人介绍，避免两处重复 */
+  var typedEl = document.getElementById('typedTarget');
+  var wtTexts = (w.typing && w.typingText && w.typingText.length)
+    ? w.typingText.slice() : [];
+  if (typedEl) {
+    var introTxt = p.intro || '';
+    /* 与个人介绍文案相同时隐藏，防止重复显示同一句话 */
+    if (wtTexts.length && wtTexts[0] !== introTxt) {
+      typedEl.classList.remove('hidden');
+      queueTypewriter(typedEl, wtTexts[0], p.introTypingSpeed || 80);
+    } else {
+      typedEl.classList.add('hidden');
+    }
+  }
+
   var introEl = document.getElementById('profileIntro');
   if (introEl) {
-    /* 个人介绍：可开启打字机效果（逐字打出，打完一直显示），后台「页面管理」可设置 */
+    /* 个人介绍：可开启打字机效果；关闭时静态显示（不再因欢迎语打字机隐藏） */
     if (p.introTyping !== false && p.intro) {
       introEl.classList.remove('hidden');
-      typeIntoElement(introEl, p.intro,
+      queueTypewriter(introEl, p.intro,
         Math.max(10, Math.min(300, parseInt(p.introTypingSpeed, 10) || 80)));
-    } else if (w.typing) {
-      /* 欢迎语打字机启用时隐藏静态介绍行，避免信息重复 */
-      introEl.classList.add('hidden');
     } else {
       introEl.classList.remove('hidden');
       introEl.textContent = p.intro || '';

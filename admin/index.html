@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=33">
+  <link rel="stylesheet" href="../assets/css/style.css?v=34">
 </head>
 <body>
 
@@ -218,6 +218,15 @@
           <div class="form-row">
             <label>博客简介<span class="hint">显示在标题下方</span></label>
             <textarea id="cfgSiteDesc" rows="2"></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label><input type="checkbox" id="cfgSiteDescTyping"> 站点描述打字机效果<span class="hint">逐字打出，打完一直显示</span></label>
+            </div>
+            <div class="form-row">
+              <label>描述打字速度（每字毫秒，默认80）</label>
+              <input type="number" id="cfgSiteDescTypingSpeed" min="10" max="300" step="10" value="80">
+            </div>
           </div>
         </div>
         <div class="panel">
@@ -501,17 +510,17 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=33"></script>
-  <script src="../assets/vendor/marked.min.js?v=33"></script>
-  <script src="../assets/js/ui.js?v=33"></script>
-  <script src="../assets/js/reader.js?v=33"></script>
+  <script src="../assets/js/config.js?v=34"></script>
+  <script src="../assets/vendor/marked.min.js?v=34"></script>
+  <script src="../assets/js/ui.js?v=34"></script>
+  <script src="../assets/js/reader.js?v=34"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=33"></script>
-  <script src="../modules/weather/module.js?v=33"></script>
-  <script src="../modules/ghchart/module.js?v=33"></script>
-  <script src="../modules/quotes/module.js?v=33"></script>
-  <script src="../modules/stats/module.js?v=33"></script>
-  <script src="../assets/js/admin.js?v=33"></script>
+  <script src="../modules/datetime/module.js?v=34"></script>
+  <script src="../modules/weather/module.js?v=34"></script>
+  <script src="../modules/ghchart/module.js?v=34"></script>
+  <script src="../modules/quotes/module.js?v=34"></script>
+  <script src="../modules/stats/module.js?v=34"></script>
+  <script src="../assets/js/admin.js?v=34"></script>
 </body>
 </html>
 

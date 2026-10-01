@@ -921,7 +921,9 @@
     var introVal = val('cfgProfileIntro');
     d.site = {
       title: val('cfgSiteTitle'),
-      desc: val('cfgSiteDesc')
+      desc: val('cfgSiteDesc'),
+      descTyping: checked('cfgSiteDescTyping'),
+      descTypingSpeed: Math.max(10, Math.min(300, parseInt(val('cfgSiteDescTypingSpeed'), 10) || 80))
     };
     d.profile = {
       showAvatar: checked('cfgShowAvatar'),
@@ -1002,6 +1004,8 @@
 
     setVal('cfgSiteTitle', site.title);
     setVal('cfgSiteDesc', site.desc);
+    setVal('cfgSiteDescTyping', site.descTyping !== false);
+    setVal('cfgSiteDescTypingSpeed', site.descTypingSpeed != null ? site.descTypingSpeed : 80);
     setVal('cfgShowAvatar', p.showAvatar);
     setVal('cfgAvatarUrl', p.avatar);
     setVal('cfgAvatarShape', p.avatarShape);
@@ -1108,6 +1112,7 @@
   /* 绑定所有设置表单的 change 事件（按所在分类分组，导航红点更准确） */
   var FORM_GROUPS = {
     'cfgSiteTitle': '页面管理', 'cfgSiteDesc': '页面管理',
+    'cfgSiteDescTyping': '页面管理', 'cfgSiteDescTypingSpeed': '页面管理',
     'cfgAvatarShape': '页面管理', 'cfgProfileIntro': '页面管理',
     'cfgProfileIntroTyping': '页面管理', 'cfgProfileIntroTypingSpeed': '页面管理',
     'cfgShowSearch': '页面管理', 'cfgShowSummary': '页面管理', 'cfgPageSize': '页面管理',

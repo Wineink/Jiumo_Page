@@ -552,7 +552,7 @@
     initCornerButtons();
     initScrollReveal();
     initParticles();
-    initTyping();
+    /* 欢迎语打字机已统一由 config.js 全局队列处理（随机延迟、依次打字），不再使用 Typed.js */
     initProgressBar();
     initMouseTrail();
     initFestivalTheme();

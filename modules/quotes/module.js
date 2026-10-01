@@ -57,36 +57,24 @@ window.JiumoModules.quotes = {
     var typewriter = m.typewriter !== false;
     var speed = Math.max(10, Math.min(300, parseInt(m.typeSpeed, 10) || 80));
     var idx = Math.floor(Math.random() * QUOTES_LIB.length);
-    var typingTimer = null;
     var draw = function () {
       var q = QUOTES_LIB[idx];
       el.innerHTML =
-        '<div class="quote-text"><span class="quote-typing"></span>' +
-        '<span class="quote-cursor" style="display:none">▍</span></div>' +
+        '<div class="quote-text"></div>' +
         (author ? '<div class="quote-author">—— ' + escapeHtml(author) + '</div>' : '');
-      var span = el.querySelector('.quote-typing');
-      var cursor = el.querySelector('.quote-cursor');
-      if (typingTimer) {
-        clearInterval(typingTimer);
-        typingTimer = null;
-      }
+      var span = el.querySelector('.quote-text');
       if (!typewriter) {
         /* 关闭打字机：直接整句显示 */
         span.textContent = q;
         return;
       }
-      /* 打字机：逐字打出，打完光标消失，文本一直保留到下一次刷新 */
-      var i = 0;
-      cursor.style.display = 'inline';
-      typingTimer = setInterval(function () {
-        i++;
-        span.textContent = q.slice(0, i);
-        if (i >= q.length) {
-          clearInterval(typingTimer);
-          typingTimer = null;
-          cursor.style.display = 'none';
-        }
-      }, speed);
+      /* 打字机：入全局队列（随机延迟后逐字打出，打完一直保留到下一次刷新） */
+      if (window.queueTypewriter) {
+        span.textContent = '';
+        window.queueTypewriter(span, q, speed, 300, 900);
+      } else {
+        span.textContent = q;
+      }
     };
     draw();
     if (refresh > 0) {
