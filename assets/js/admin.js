@@ -927,7 +927,9 @@
       showAvatar: checked('cfgShowAvatar'),
       avatar: val('cfgAvatarUrl'),
       avatarShape: val('cfgAvatarShape'),
-      intro: introVal
+      intro: introVal,
+      introTyping: checked('cfgProfileIntroTyping'),
+      introTypingSpeed: Math.max(10, Math.min(300, parseInt(val('cfgProfileIntroTypingSpeed'), 10) || 80))
     };
     d.layout = {
       showSearch: checked('cfgShowSearch'),
@@ -1005,6 +1007,8 @@
     setVal('cfgAvatarShape', p.avatarShape);
     setVal('cfgProfileIntro',
       (w.typingText && w.typingText.length) ? w.typingText.join(';') : p.intro);
+    setVal('cfgProfileIntroTyping', p.introTyping !== false);
+    setVal('cfgProfileIntroTypingSpeed', p.introTypingSpeed != null ? p.introTypingSpeed : 80);
     setVal('cfgShowSearch', lay.showSearch);
     setVal('cfgShowSummary', lay.showSummary);
     setVal('cfgPageSize', lay.pageSize);
@@ -1104,8 +1108,8 @@
   /* 绑定所有设置表单的 change 事件（按所在分类分组，导航红点更准确） */
   var FORM_GROUPS = {
     'cfgSiteTitle': '页面管理', 'cfgSiteDesc': '页面管理',
-    'cfgShowAvatar': '页面管理', 'cfgAvatarUrl': '页面管理',
     'cfgAvatarShape': '页面管理', 'cfgProfileIntro': '页面管理',
+    'cfgProfileIntroTyping': '页面管理', 'cfgProfileIntroTypingSpeed': '页面管理',
     'cfgShowSearch': '页面管理', 'cfgShowSummary': '页面管理', 'cfgPageSize': '页面管理',
     'cfgTheme': '主题', 'cfgAccent': '主题', 'cfgAccentDark': '主题',
     'cfgButtonStyle': '主题', 'cfgRadius': '主题', 'cfgFontSize': '主题',

@@ -35,7 +35,9 @@ window.DEFAULT_SITE_CONFIG = {
     showAvatar: true,          /* 是否显示头像 */
     avatar: '',                /* 头像图片地址，留空则用默认首字母头像 */
     avatarShape: 'circle',     /* circle 圆形 / square 方形 */
-    intro: '欢迎来到酒墨的页面；记录生活与代码'
+    intro: '欢迎来到酒墨的页面；记录生活与代码',
+    introTyping: true,         /* 个人介绍打字机效果（逐字打出，打完一直显示） */
+    introTypingSpeed: 80       /* 打字速度（每字毫秒，默认80） */
   },
   layout: {
     showSearch: true,          /* 首页是否显示搜索框 */
@@ -644,6 +646,25 @@ function buildFilename(title, date) {
   return (date || todayStr()) + '-' + slugify(title) + '.md';
 }
 
+/* 通用打字机渲染：逐字打出文字，打字时显示光标，打完光标消失、文本一直保留 */
+function typeIntoElement(el, text, speed) {
+  el.textContent = '';
+  var i = 0;
+  var cursor = document.createElement('span');
+  cursor.className = 'typing-cursor';
+  cursor.textContent = '▍';
+  cursor.style.display = 'inline';
+  el.appendChild(cursor);
+  var timer = setInterval(function () {
+    i++;
+    cursor.textContent = text.slice(0, i) + '▍';
+    if (i >= text.length) {
+      clearInterval(timer);
+      el.textContent = text;   /* 打完：纯文本，去掉光标，一直保留 */
+    }
+  }, speed || 80);
+}
+
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
     return {
@@ -792,8 +813,13 @@ function applySiteConfig(cfg) {
   }
   var introEl = document.getElementById('profileIntro');
   if (introEl) {
-    /* 打字机启用时隐藏静态介绍行，避免信息重复；未启用时显示静态介绍 */
-    if (w.typing) {
+    /* 个人介绍：可开启打字机效果（逐字打出，打完一直显示），后台「页面管理」可设置 */
+    if (p.introTyping !== false && p.intro) {
+      introEl.classList.remove('hidden');
+      typeIntoElement(introEl, p.intro,
+        Math.max(10, Math.min(300, parseInt(p.introTypingSpeed, 10) || 80)));
+    } else if (w.typing) {
+      /* 欢迎语打字机启用时隐藏静态介绍行，避免信息重复 */
       introEl.classList.add('hidden');
     } else {
       introEl.classList.remove('hidden');
