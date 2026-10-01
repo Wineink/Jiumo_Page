@@ -72,6 +72,8 @@
    * 滚动入场动画：元素添加 .reveal 类后，进入视口时淡入上滑
    * 动画速度由后台「动画」分类的 speed 控制
    * 管理后台不启用（后台实时预览区不参与入场动画）
+   * 动态扫描：文章列表等异步渲染后新出现的 .reveal 元素
+   * 也会被纳入观察，避免卡片永久透明不可见
    * -------------------------------------------------------- */
   function initScrollReveal() {
     if (document.querySelector('.admin-nav')) {
@@ -89,12 +91,10 @@
       '.reveal.revealed{opacity:1;transform:none;}';
     document.head.appendChild(style);
 
-    var targets = document.querySelectorAll('.reveal');
-    if (!targets.length) {
-      return;
-    }
     if (!('IntersectionObserver' in window)) {
-      targets.forEach(function (el) { el.classList.add('revealed'); });
+      /* 不支持观察器的环境：直接全部显示，避免内容不可见 */
+      var all = document.querySelectorAll('.reveal');
+      all.forEach(function (el) { el.classList.add('revealed'); });
       return;
     }
     var io = new IntersectionObserver(function (entries) {
@@ -105,7 +105,24 @@
         }
       });
     }, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
-    targets.forEach(function (el) { io.observe(el); });
+
+    function scan() {
+      var els = document.querySelectorAll('.reveal:not(.revealed)');
+      els.forEach(function (el) {
+        if (!el.__revealObserved) {
+          el.__revealObserved = true;
+          io.observe(el);
+        }
+      });
+    }
+    scan();
+    /* 监听 DOM 变化：异步渲染（文章列表、搜索过滤等）后自动观察新卡片 */
+    if ('MutationObserver' in window) {
+      var mo = new MutationObserver(function () {
+        scan();
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   /* ----------------------------------------------------------
