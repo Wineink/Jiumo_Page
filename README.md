@@ -13,7 +13,7 @@
 ## 目录结构
 
 ```
-Jiumo_Page/
+Jiumo_blog/
 ├── index.html                # 博客首页
 ├── post.html                 # 文章详情页
 ├── site-config.json          # 站点配置（标题/外观/组件开关）
@@ -26,6 +26,12 @@ Jiumo_Page/
 │   ├── js/ui.js              # 前端交互（返回顶部/主题切换/粒子等）
 │   ├── js/admin.js           # 后台逻辑
 │   └── vendor/marked.min.js  # Markdown 渲染库（本地内置）
+├── modules/                  # 侧栏功能模块
+│   ├── README.md             # 模块开发指南
+│   ├── datetime/module.js    # 日期时间模块
+│   ├── weather/module.js     # 天气模块
+│   ├── ghchart/module.js     # GitHub 贡献热力图
+│   └── stats/module.js       # 访问统计
 ├── posts/                    # 文章目录（Markdown 文件）
 └── .nojekyll                 # 禁用 GitHub Pages 的 Jekyll 处理
 ```
