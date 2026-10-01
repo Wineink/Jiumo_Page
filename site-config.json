@@ -87,6 +87,9 @@
     "scrollReveal": true,
     "particles": true,
     "particlesPreset": "snow",
+    "particlesCount": 60,
+    "particlesOpacity": 0.3,
+    "particlesColor": "auto",
     "typing": true,
     "typingText": [
       "欢迎来到酒墨的页面。"
@@ -94,6 +97,9 @@
     "progressBar": true,
     "mouseTrail": true,
     "festivalTheme": true,
+    "festivalDecoCount": 20,
+    "festivalDecoOpacity": 0.4,
+    "festivalDecoContent": "",
     "themeAnim": "ripple",
     "gitalk": {
       "enabled": false,
@@ -109,6 +115,6 @@
     }
   },
   "animation": {
-    "speed": "normal"
+    "speed": "slow"
   }
 }
