@@ -210,15 +210,22 @@ function getConfig() {
       /* 仓库改名兼容：旧浏览器里保存的还是 Jiumo_blog，自动使用新名，无需重新登录 */
       cfg.repo = (saved.repo === 'Jiumo_blog' || !saved.repo) ? cfg.repo : saved.repo;
       cfg.branch = saved.branch || cfg.branch;
-      cfg.token = saved.token || '';
+      cfg.token = saved.token ? decryptToken(saved.token) : '';
     }
   } catch (e) {}
   return cfg;
 }
 
-/* 保存后台登录设置 */
+/* 保存后台登录设置：Token 混淆加密后存储，localStorage 中不出现明文 */
 function saveSettings(s) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(s));
+  var copy = {};
+  for (var k in s) {
+    copy[k] = s[k];
+  }
+  if (copy.token) {
+    copy.token = encryptToken(copy.token);
+  }
+  localStorage.setItem(STORE_KEY, JSON.stringify(copy));
 }
 
 /* 清除后台登录设置 */
@@ -228,6 +235,53 @@ function clearSettings() {
 
 function getToken() {
   return getConfig().token;
+}
+
+/* ------------------------------------------------------------
+ * Token 混淆加解密（XOR + Base64）
+ * 说明：纯静态前端无法做到绝对安全（密钥在代码中），
+ * 此实现用于「防明文泄露」——localStorage 中不再直接存放 Token 明文，
+ * 即使被复制也无法直接读出 Token。
+ * ---------------------------------------------------------- */
+function _tokKey() {
+  return 'jiumo_page_' + (location.hostname || 'local');
+}
+
+function encryptToken(str) {
+  if (!str) {
+    return '';
+  }
+  var key = _tokKey();
+  var out = [];
+  for (var i = 0; i < str.length; i++) {
+    out.push(String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length)));
+  }
+  try {
+    return 'enc:' + btoa(out.join(''));
+  } catch (e) {
+    return str;
+  }
+}
+
+function decryptToken(str) {
+  if (!str) {
+    return '';
+  }
+  /* 兼容旧版本明文存储：无 enc: 前缀直接返回 */
+  if (str.indexOf('enc:') !== 0) {
+    return str;
+  }
+  try {
+    var key = _tokKey();
+    var s = atob(str.slice(4));
+    var out = [];
+    for (var i = 0; i < s.length; i++) {
+      out.push(String.fromCharCode(s.charCodeAt(i) ^ key.charCodeAt(i % key.length)));
+    }
+    return out.join('');
+  } catch (e) {
+    return '';
+  }
 }
 
 /* ------------------------------------------------------------

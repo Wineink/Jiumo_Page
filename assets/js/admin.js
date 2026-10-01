@@ -1097,7 +1097,8 @@
     setVal('setOwner', state.repoDraft.owner);
     setVal('setRepo', state.repoDraft.repo);
     setVal('setBranch', state.repoDraft.branch);
-    setVal('setToken', state.repoDraft.token);
+    /* Token 不回填明文：留空则沿用已保存的 Token，需要更换才输入 */
+    setVal('setToken', '');
   }
 
   /* 绑定所有设置表单的 change 事件（按所在分类分组，导航红点更准确） */
@@ -1150,7 +1151,11 @@
         state.repoDraft.owner = val('setOwner');
         state.repoDraft.repo = val('setRepo');
         state.repoDraft.branch = val('setBranch');
-        state.repoDraft.token = val('setToken');
+        /* Token 密码框：留空/未改动则沿用已保存的 Token */
+        var tk = val('setToken');
+        if (tk && tk.trim()) {
+          state.repoDraft.token = tk.trim();
+        }
         markDirty('仓库管理');
       });
     }
