@@ -869,15 +869,16 @@ body.admin-locked {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 0 16px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
+  padding: 4px 0 18px;
+  margin-bottom: 22px;
   flex-wrap: wrap;
   position: sticky;
   top: 0;
   z-index: 30;
   background: var(--bg);
-  box-shadow: 0 1px 0 var(--border);
+  /* 无边框无线条：顶栏与下方内容无缝衔接 */
+  border-bottom: none;
+  box-shadow: none;
 }
 
 .admin-topbar h1 {

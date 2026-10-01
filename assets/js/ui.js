@@ -126,66 +126,96 @@
   }
 
   /* ----------------------------------------------------------
-   * 粒子背景（tsParticles，CDN 按需加载）
+   * 粒子背景（原生 Canvas 自绘，不依赖任何 CDN）
+   * 两种预设：default 连线粒子 / snow 雪花飘落
+   * 后台「动画管理」可开关
    * -------------------------------------------------------- */
   function initParticles() {
+    if (document.querySelector('.admin-nav')) {
+      return;                  /* 后台管理页不渲染粒子 */
+    }
     var w = SITE_CFG.widgets || {};
     if (!w.particles) {
       return;
     }
-    var box = document.getElementById('particles-bg');
-    if (!box) {
-      box = document.createElement('div');
-      box.id = 'particles-bg';
-      document.body.insertBefore(box, document.body.firstChild);
+    var cv = document.createElement('canvas');
+    cv.id = 'particles-bg';
+    document.body.insertBefore(cv, document.body.firstChild);
+    var ctx = cv.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+
+    function resize() {
+      cv.width = Math.round(window.innerWidth * dpr);
+      cv.height = Math.round(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    var start = function () {
-      if (!window.tsParticles) {
-        return;
-      }
-      var preset = w.particlesPreset === 'snow' ? 'snow' : 'default';
-      var opts;
-      if (preset === 'snow') {
-        opts = {
-          fpsLimit: 40,
-          particles: {
-            number: { value: 80 },
-            color: { value: '#ffffff' },
-            shape: { type: 'circle' },
-            opacity: { value: 0.5 },
-            size: { value: 3, random: true },
-            move: { enable: true, speed: 1.2, direction: 'bottom', straight: true }
-          },
-          detectRetina: true
-        };
-      } else {
-        opts = {
-          fpsLimit: 40,
-          particles: {
-            number: { value: 45 },
-            color: { value: '#0f766e' },
-            links: { enable: true, distance: 130, color: '#0f766e', opacity: 0.25, width: 1 },
-            move: { enable: true, speed: 0.8 },
-            size: { value: 2.5, random: true },
-            opacity: { value: 0.4 }
-          },
-          detectRetina: true
-        };
-      }
-      /* tsparticles v4 的 load 接口为对象签名：{ id, options } */
-      window.tsParticles.load({ id: 'particles-bg', options: opts })
-        .catch(function (err) {
-          console.error('粒子加载失败：', err);
-        });
-    };
-    if (window.tsParticles) {
-      start();
-    } else {
-      loadScript(
-        'https://cdn.jsdelivr.net/npm/@tsparticles/slim@4/tsparticles.slim.bundle.min.js',
-        start
-      );
+    resize();
+    window.addEventListener('resize', resize);
+
+    var isSnow = w.particlesPreset === 'snow';
+    var accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent').trim() || '#0f766e';
+    var N = isSnow ? 70 : 48;
+    var pts = [];
+    for (var i = 0; i < N; i++) {
+      pts.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: isSnow ? (0.5 + Math.random() * 1.1) : (Math.random() - 0.5) * 0.35,
+        r: isSnow ? (1 + Math.random() * 2.2) : (1.1 + Math.random() * 1.7),
+        tw: Math.random() * Math.PI * 2
+      });
     }
+
+    function tick() {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      var ww = window.innerWidth, wh = window.innerHeight;
+      pts.forEach(function (p) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.tw += 0.02;
+        if (p.x < -10) { p.x = ww + 10; }
+        if (p.x > ww + 10) { p.x = -10; }
+        if (p.y < -10) { p.y = wh + 10; }
+        if (p.y > wh + 10) { p.y = -10; }
+        if (isSnow) {
+          /* 雪花：白色半透明，左右轻微摆动 */
+          ctx.globalAlpha = 0.55 + Math.sin(p.tw) * 0.2;
+          ctx.fillStyle = '#ffffff';
+        } else {
+          /* 连线粒子：主色，轻微呼吸透明度 */
+          ctx.globalAlpha = 0.35 + Math.sin(p.tw) * 0.12;
+          ctx.fillStyle = accent;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      /* 连线粒子：距离近的粒子之间画细线 */
+      if (!isSnow) {
+        ctx.lineWidth = 1;
+        var i, j, dx, dy, d2;
+        for (i = 0; i < pts.length; i++) {
+          for (j = i + 1; j < pts.length; j++) {
+            dx = pts[i].x - pts[j].x;
+            dy = pts[i].y - pts[j].y;
+            d2 = dx * dx + dy * dy;
+            if (d2 < 16900) {           /* 130px 内连线 */
+              ctx.globalAlpha = 0.24 * (1 - Math.sqrt(d2) / 130);
+              ctx.strokeStyle = accent;
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[j].x, pts[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(tick);
+    }
+    tick();
   }
 
   /* ----------------------------------------------------------
