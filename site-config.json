@@ -66,7 +66,9 @@
         "title": "每日一言",
         "refresh": 20,
         "author": "",
-        "position": "left"
+        "position": "left",
+        "typewriter": true,
+        "typeSpeed": 150
       }
     ]
   },
