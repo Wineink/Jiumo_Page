@@ -107,6 +107,20 @@
     }
 
     listPostFiles().then(function (files) {
+      /* 拿到文章列表后，按实际文章数量渲染骨架屏（上限 = 分页数 pageSize） */
+      var skN = Math.max(0, Math.min(files.length, pageSize));
+      if (skN > 0) {
+        var skHtml = '';
+        for (var s = 0; s < skN; s++) {
+          skHtml += '<div class="skeleton-card">' +
+            '<div class="sk sk-title"></div>' +
+            '<div class="sk sk-meta"></div>' +
+            '<div class="sk sk-line"></div>' +
+            '<div class="sk sk-line short"></div>' +
+            '</div>';
+        }
+        listEl.innerHTML = skHtml;
+      }
       return Promise.all(files.map(function (f) {
         return getPostRaw(f.name).then(function (raw) {
           return { file: f, meta: parseFrontMatter(raw) };
