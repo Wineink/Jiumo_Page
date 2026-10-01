@@ -87,7 +87,7 @@
   "widgets": {
     "backToTop": true,
     "darkToggle": true,
-    "darkTogglePos": "top-right",
+    "darkTogglePos": "bottom-right",
     "headerButtons": [],
     "busuanzi": false,
     "scrollReveal": true,
