@@ -48,6 +48,21 @@
       searchEl.classList.toggle('hidden', !showSearch);
     }
     var allPosts = [];
+    var searchKw = '';
+
+    /* 搜索词高亮：对文本中的关键词加 <mark>（先转义再替换，防 XSS） */
+    function highlight(text, kw) {
+      var safe = escapeHtml(String(text || ''));
+      if (!kw) {
+        return safe;
+      }
+      var esc = escapeHtml(kw.trim());
+      if (!esc) {
+        return safe;
+      }
+      var re = new RegExp('(' + esc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return safe.replace(re, '<mark>$1</mark>');
+    }
 
     function renderList(posts) {
       if (!posts.length) {
@@ -62,10 +77,10 @@
         return '<a class="post-card reveal" style="transition-delay:' +
           Math.min(i * 60, 360) + 'ms" href="post.html?f=' +
           encodeURIComponent(p.file.name) + '">' +
-          '<h2>' + escapeHtml(meta.title || p.file.name) + '</h2>' +
+          '<h2>' + highlight(meta.title || p.file.name, searchKw) + '</h2>' +
           '<div class="post-meta"><span>' + escapeHtml(meta.date || '') +
           '</span> ' + tagsHtml(meta.tags) + '</div>' +
-          (showSummary && summary ? '<p class="post-summary">' + escapeHtml(summary) + '</p>' : '') +
+          (showSummary && summary ? '<p class="post-summary">' + highlight(summary, searchKw) + '</p>' : '') +
           '</a>';
       }).join('') +
         (posts.length > pageSize
@@ -76,6 +91,7 @@
 
     function filterPosts(kw) {
       kw = kw.trim().toLowerCase();
+      searchKw = kw;
       if (!kw) {
         return allPosts;
       }

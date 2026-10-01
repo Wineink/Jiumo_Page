@@ -1840,6 +1840,49 @@ body:has(.login-shell)::before {
   -webkit-text-fill-color: transparent;
 }
 
+/* 顶部阅读进度条 */
+#readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  z-index: 200;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 70%, #8b5cf6),
+    var(--accent));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+  pointer-events: none;
+}
+
+/* 每日一言模块 */
+.quote-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+}
+.quote-author {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* 搜索高亮 */
+.post-card mark {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  color: var(--text);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* 后台文章卡片字数 */
+.admin-item .item-words {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* ---- 后台内容区滚动条美化 ---- */
 .admin-content::-webkit-scrollbar {
   width: 9px;

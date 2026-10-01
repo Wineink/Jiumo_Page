@@ -25,6 +25,7 @@
   /* 视图名映射 */
   var VIEW_NAMES = {
     posts: '文章管理',
+    drafts: '草稿箱',
     repo: '仓库管理',
     pages: '页面管理',
     theme: '主题',
@@ -121,6 +122,14 @@
   navItems.forEach(function (btn) {
     btn.addEventListener('click', function () {
       switchView(btn.getAttribute('data-view'));
+      /* 草稿箱视图：数据就绪则立即渲染，未加载先加载 */
+      if (btn.getAttribute('data-view') === 'drafts') {
+        if (!state.posts.length) {
+          loadPosts();
+        } else {
+          renderDraftsList();
+        }
+      }
     });
   });
 
@@ -166,46 +175,69 @@
     });
   }
 
+  /* 单条文章卡片 HTML（文章管理 / 草稿箱共用），含字数统计 */
+  function adminItemHtml(p) {
+    var title = p.meta.title || p.name;
+    var tags = p.meta.tags.map(function (t) {
+      return '<span class="tag">' + escapeHtml(t) + '</span>';
+    }).join(' ');
+    var isDraft = p.meta.draft === 'true' || p.meta.draft === true;
+    var badge = isDraft ?
+      '<span class="badge badge-draft" title="待发布：不会显示在首页">待发布</span>' :
+      '<span class="badge badge-pub" title="已发布：显示在首页">已发布</span>';
+    var toggleBtn = isDraft ?
+      '<button class="btn btn-primary btn-sm" data-action="publish" data-name="' +
+        encodeURIComponent(p.name) + '">发布</button>' :
+      '<button class="btn btn-ghost btn-sm" data-action="unpublish" data-name="' +
+        encodeURIComponent(p.name) + '">撤回</button>';
+    var words = String(p.meta.body || '').replace(/\s/g, '').length;
+    return '<div class="admin-item">' +
+      '<div class="item-main">' +
+        '<div class="item-title">' + escapeHtml(title) + ' ' + badge + '</div>' +
+        '<div class="item-sub">' + escapeHtml(p.meta.date || '') + ' ' +
+          tags + ' · ' + escapeHtml(p.name) +
+          '<span class="item-words"> · 约 ' + words + ' 字</span></div>' +
+      '</div>' +
+      '<div class="item-actions">' +
+        toggleBtn +
+        '<button class="btn btn-ghost btn-sm" data-action="history" data-name="' +
+          encodeURIComponent(p.name) + '">历史</button>' +
+        '<button class="btn btn-ghost btn-sm" data-action="edit" data-name="' +
+          encodeURIComponent(p.name) + '">编辑</button>' +
+        '<button class="btn btn-danger btn-sm" data-action="del" data-name="' +
+          encodeURIComponent(p.name) + '">删除</button>' +
+      '</div>' +
+    '</div>';
+  }
+
   function renderAdminList() {
     if (!state.posts.length) {
       adminList.innerHTML =
         '<div class="state-box">还没有文章，点击右上角「+ 新建文章」或「导入 MD」开始。</div>';
       return;
     }
-    adminList.innerHTML = state.posts.map(function (p) {
-      var title = p.meta.title || p.name;
-      var tags = p.meta.tags.map(function (t) {
-        return '<span class="tag">' + escapeHtml(t) + '</span>';
-      }).join(' ');
-      var isDraft = p.meta.draft === 'true' || p.meta.draft === true;
-      var badge = isDraft ?
-        '<span class="badge badge-draft" title="待发布：不会显示在首页">待发布</span>' :
-        '<span class="badge badge-pub" title="已发布：显示在首页">已发布</span>';
-      var toggleBtn = isDraft ?
-        '<button class="btn btn-primary btn-sm" data-action="publish" data-name="' +
-          encodeURIComponent(p.name) + '">发布</button>' :
-        '<button class="btn btn-ghost btn-sm" data-action="unpublish" data-name="' +
-          encodeURIComponent(p.name) + '">撤回</button>';
-      return '<div class="admin-item">' +
-        '<div class="item-main">' +
-          '<div class="item-title">' + escapeHtml(title) + ' ' + badge + '</div>' +
-          '<div class="item-sub">' + escapeHtml(p.meta.date || '') + ' ' +
-            tags + ' · ' + escapeHtml(p.name) + '</div>' +
-        '</div>' +
-        '<div class="item-actions">' +
-          toggleBtn +
-          '<button class="btn btn-ghost btn-sm" data-action="history" data-name="' +
-            encodeURIComponent(p.name) + '">历史</button>' +
-          '<button class="btn btn-ghost btn-sm" data-action="edit" data-name="' +
-            encodeURIComponent(p.name) + '">编辑</button>' +
-          '<button class="btn btn-danger btn-sm" data-action="del" data-name="' +
-            encodeURIComponent(p.name) + '">删除</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+    adminList.innerHTML = state.posts.map(adminItemHtml).join('');
   }
 
-  adminList.addEventListener('click', function (e) {
+  /* 草稿箱：仅显示待发布（draft: true）的文章 */
+  function renderDraftsList() {
+    var draftsEl = document.getElementById('draftsList');
+    if (!draftsEl) {
+      return;
+    }
+    var drafts = state.posts.filter(function (p) {
+      return p.meta.draft === 'true' || p.meta.draft === true;
+    });
+    if (!drafts.length) {
+      draftsEl.innerHTML =
+        '<div class="state-box">草稿箱是空的。文章管理中点「撤回」可把已发布文章转为待发布；新建文章点「保存」即为草稿。</div>';
+      return;
+    }
+    draftsEl.innerHTML = drafts.map(adminItemHtml).join('');
+  }
+
+  /* 文章列表与草稿箱列表共用的操作事件 */
+  function onItemAction(e) {
     var btn = e.target.closest('button[data-action]');
     if (!btn) {
       return;
@@ -223,7 +255,13 @@
     } else if (action === 'history') {
       showHistory(name);
     }
-  });
+  }
+
+  adminList.addEventListener('click', onItemAction);
+  var draftsList = document.getElementById('draftsList');
+  if (draftsList) {
+    draftsList.addEventListener('click', onItemAction);
+  }
 
   /* ----------------------------------------------------------
    * 文章修改历史：通过 GitHub commits API 拉取该文件的提交记录
@@ -486,6 +524,8 @@
   });
 
   function openEditor(name) {
+    /* 从草稿箱点「编辑」时切回文章管理视图（编辑器在文章管理视图内） */
+    switchView('posts');
     getPostMeta(name).then(function (data) {
       var meta = parseFrontMatter(base64ToUtf8(data.content));
       state.isNew = false;
@@ -737,6 +777,7 @@
     d.widgets.typingText = introVal
       .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
     d.widgets.themeAnim = val('cfgWThemeAnim');
+    d.widgets.progressBar = checked('cfgWProgressBar');
     d.animation = { speed: val('cfgAnimSpeed') };
     d.sidebar = d.sidebar || {};
     d.sidebar.enabled = checked('cfgSidebarEnabled');
@@ -783,6 +824,7 @@
     setVal('cfgWParticlesPreset', w.particlesPreset);
     setVal('cfgWTyping', w.typing);
     setVal('cfgWThemeAnim', w.themeAnim || 'ripple');
+    setVal('cfgWProgressBar', w.progressBar !== false);
     setVal('cfgAnimSpeed', anim.speed);
     setVal('cfgSidebarEnabled', sb.enabled);
     setVal('cfgSidebarSticky', sb.sticky);
@@ -859,7 +901,8 @@
     'cfgSidebarEnabled': '组件模块', 'cfgSidebarSticky': '组件模块',
     'cfgWScrollReveal': '动画管理', 'cfgAnimSpeed': '动画管理',
     'cfgWParticles': '动画管理', 'cfgWParticlesPreset': '动画管理',
-    'cfgWTyping': '动画管理', 'cfgWThemeAnim': '动画管理'
+    'cfgWTyping': '动画管理', 'cfgWThemeAnim': '动画管理',
+    'cfgWProgressBar': '动画管理'
   };
 
   function bindConfigForms() {
@@ -1205,6 +1248,14 @@
       return '';
     }
   });
+
+  /* 草稿箱：返回文章管理 */
+  var btnToPosts = document.getElementById('btnToPosts');
+  if (btnToPosts) {
+    btnToPosts.addEventListener('click', function () {
+      switchView('posts');
+    });
+  }
 
   /* 点博客首页/登出时若 dirty 先提示 */
   function guardExit(cb) {

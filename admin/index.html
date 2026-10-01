@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=12">
+  <link rel="stylesheet" href="../assets/css/style.css?v=13">
 </head>
 <body>
 
@@ -60,6 +60,7 @@
     <nav class="admin-nav">
       <div class="nav-brand">Jiumo_Page<small>管理后台</small></div>
       <button class="nav-item active" data-view="posts" id="navPosts">文章管理</button>
+      <button class="nav-item" data-view="drafts" id="navDrafts">草稿箱</button>
       <button class="nav-item" data-view="repo" id="navRepo">仓库管理</button>
       <button class="nav-item" data-view="pages" id="navPages">页面管理</button>
       <button class="nav-item" data-view="theme" id="navTheme">主题</button>
@@ -131,6 +132,21 @@
             <button class="btn btn-primary" id="btnSave">保存并发布</button>
             <button class="btn btn-ghost" id="btnCancel">取消</button>
             <span style="font-size:12px;color:var(--muted);align-self:center;" id="editDateHint"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 草稿箱：待发布文章独立管理 -->
+      <div class="view-pane hidden" id="view-drafts">
+        <div class="panel">
+          <div class="editor-toolbar" style="margin-bottom:4px;">
+            <h2 style="margin:0;">草稿箱（待发布）</h2>
+            <div class="actions">
+              <button class="btn btn-ghost btn-sm" id="btnToPosts">← 返回文章管理</button>
+            </div>
+          </div>
+          <div class="admin-list" id="draftsList">
+            <div class="state-box"><span class="spinner"></span>正在加载…</div>
           </div>
         </div>
       </div>
@@ -362,6 +378,12 @@
           </div>
         </div>
         <div class="panel">
+          <h2>阅读进度条</h2>
+          <div class="form-row">
+            <label><input type="checkbox" id="cfgWProgressBar"> 顶部显示阅读进度条<span class="hint">页面滚动时顶部细条显示阅读位置</span></label>
+          </div>
+        </div>
+        <div class="panel">
           <h2>主题切换动画</h2>
           <div class="form-row">
             <label>点击深浅色按钮时的过渡效果</label>
@@ -393,14 +415,16 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=12"></script>
-  <script src="../assets/vendor/marked.min.js?v=12"></script>
-  <script src="../assets/js/ui.js?v=12"></script>
+  <script src="../assets/js/config.js?v=13"></script>
+  <script src="../assets/vendor/marked.min.js?v=13"></script>
+  <script src="../assets/js/ui.js?v=13"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=12"></script>
-  <script src="../modules/weather/module.js?v=12"></script>
-  <script src="../modules/ghchart/module.js?v=12"></script>
-  <script src="../modules/stats/module.js?v=12"></script>
-  <script src="../assets/js/admin.js?v=12"></script>
+  <script src="../modules/datetime/module.js?v=13"></script>
+  <script src="../modules/weather/module.js?v=13"></script>
+  <script src="../modules/ghchart/module.js?v=13"></script>
+  <script src="../modules/quotes/module.js?v=13"></script>
+  <script src="../modules/stats/module.js?v=13"></script>
+  <script src="../assets/js/admin.js?v=13"></script>
 </body>
 </html>
+

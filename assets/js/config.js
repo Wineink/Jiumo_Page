@@ -54,6 +54,8 @@ window.DEFAULT_SITE_CONFIG = {
         city: '无锡', lat: 31.49, lon: 120.31, unit: 'celsius' },
       { id: 'ghchart', enabled: false, title: 'GitHub 贡献',
         username: 'jiumooo', period: 'year', style: 'classic', rounded: true },
+      { id: 'quotes', enabled: true, title: '每日一言',
+        refresh: 10, author: '酒墨' },
       { id: 'stats', enabled: false, title: '访问统计',
         showPv: true, showUv: false }
     ]
@@ -77,6 +79,7 @@ window.DEFAULT_SITE_CONFIG = {
     particlesPreset: 'default',/* default 连线粒子 / snow 雪花 */
     typing: false,             /* 打字机效果 */
     typingText: ['欢迎来到酒墨的页面', '记录生活与代码'],
+    progressBar: true,         /* 顶部阅读进度条 */
     themeAnim: 'ripple'        /* 主题切换动画：ripple 点击处圆形扩散 / none 无动画 */
   },
   animation: {

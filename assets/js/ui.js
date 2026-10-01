@@ -237,6 +237,35 @@
   }
 
   /* ----------------------------------------------------------
+   * 顶部阅读进度条：页面滚动时显示阅读位置
+   * 后台不启用（后台是固定布局，无需进度条）
+   * -------------------------------------------------------- */
+  function initProgressBar() {
+    if (document.querySelector('.admin-nav')) {
+      return;
+    }
+    var w = SITE_CFG.widgets || {};
+    if (!w.progressBar) {
+      return;
+    }
+    var bar = document.getElementById('readingProgress');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'readingProgress';
+      document.body.appendChild(bar);
+    }
+    var update = function () {
+      var doc = document.documentElement;
+      var total = doc.scrollHeight - window.innerHeight;
+      var pct = total > 0 ? (window.scrollY / total) * 100 : 0;
+      bar.style.width = pct.toFixed(2) + '%';
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }
+
+  /* ----------------------------------------------------------
    * 统一入口：页面加载完 site-config 后调用
    * -------------------------------------------------------- */
   window.initJiumoUI = function () {
@@ -244,5 +273,6 @@
     initScrollReveal();
     initParticles();
     initTyping();
+    initProgressBar();
   };
 })();
