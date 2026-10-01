@@ -31,7 +31,9 @@
         var cur = applyTheme();
         var next = cur === 'dark' ? 'light' : 'dark';
         var anim = (SITE_CFG.widgets && SITE_CFG.widgets.themeAnim) || 'ripple';
-        /* 圆形扩散动画：以点击位置为圆心，从 0 扩散覆盖全屏 */
+        /* 圆形扩散动画：以点击位置为圆心，从 0 扩散覆盖全屏
+         * 扩散遮罩呈现「目标主题」的背景色，扩散到哪里哪里就切换成新主题
+         * 扩散完成时同步切换主题底色并移除遮罩 → 边扩散边切换，无缝衔接 */
         if (anim === 'ripple') {
           var x = (e && e.clientX != null) ? e.clientX : window.innerWidth / 2;
           var y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
@@ -42,22 +44,28 @@
           try {
             localStorage.setItem(THEME_KEY, next);
           } catch (err) {}
+          /* 目标主题背景色：临时切到目标主题取值后立刻切回（同一栈内无重绘） */
           applyTheme(next);
+          var bg = getComputedStyle(document.documentElement)
+            .getPropertyValue('--bg').trim();
+          applyTheme(cur);
           var ov = document.createElement('div');
           ov.className = 'theme-ripple';
           ov.style.clipPath = 'circle(0px at ' + x + 'px ' + y + 'px)';
+          ov.style.background = bg ||
+            (next === 'dark' ? '#12161b' : '#faf9f6');
           document.body.appendChild(ov);
-          /* 先应用新主题再取背景色，overlay 呈现新主题背景 */
-          ov.style.background = getComputedStyle(document.documentElement)
-            .getPropertyValue('--bg').trim() || (next === 'dark' ? '#12161b' : '#faf9f6');
+          /* 先播放扩散（此时页面还是旧主题，遮罩新色从点击处扩开） */
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               ov.style.clipPath = 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)';
             });
           });
+          /* 扩散完成：切换主题底色并移除遮罩，同帧完成无闪烁 */
           setTimeout(function () {
+            applyTheme(next);
             ov.remove();
-          }, 700);
+          }, 680);
         } else {
           try {
             localStorage.setItem(THEME_KEY, next);
