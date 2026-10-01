@@ -87,8 +87,8 @@
     "scrollReveal": true,
     "particles": true,
     "particlesPreset": "default",
-    "particlesCount": 30,
-    "particlesOpacity": 0.3,
+    "particlesCount": 35,
+    "particlesOpacity": 0.4,
     "particlesColor": "auto",
     "typing": true,
     "typingText": [
