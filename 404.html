@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - 页面走丢了 · 酒墨的页面</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --surface: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #0f766e;
+      --accent2: #8b5cf6;
+      --border: #e5e7eb;
+      --code-bg: #f1f5f9;
+    }
+    html[data-theme="dark"] {
+      --bg: #0b1220;
+      --surface: #101a2c;
+      --text: #e6edf3;
+      --muted: #94a3b8;
+      --accent: #14b8a6;
+      --accent2: #a78bfa;
+      --border: #1e293b;
+      --code-bg: #0f172a;
+    }
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme="light"]) {
+        --bg: #0b1220;
+        --surface: #101a2c;
+        --text: #e6edf3;
+        --muted: #94a3b8;
+        --accent: #14b8a6;
+        --accent2: #a78bfa;
+        --border: #1e293b;
+        --code-bg: #0f172a;
+      }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 背景光斑 */
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .5;
+      z-index: 0;
+      pointer-events: none;
+    }
+    body::before {
+      width: 480px; height: 480px;
+      background: color-mix(in srgb, var(--accent) 40%, transparent);
+      top: -140px; left: -120px;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    body::after {
+      width: 420px; height: 420px;
+      background: color-mix(in srgb, var(--accent2) 35%, transparent);
+      bottom: -120px; right: -100px;
+      animation: drift 15s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.15); }
+    }
+
+    /* 漂浮光点 */
+    .dots {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .dots i {
+      position: absolute;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 55%, transparent);
+      animation: floaty 8s ease-in-out infinite;
+    }
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0); opacity: .25; }
+      50%      { transform: translateY(-26px); opacity: .8; }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 60px 70px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 24px 60px -18px color-mix(in srgb, var(--accent) 25%, transparent);
+      max-width: 92vw;
+    }
+
+    /* 大号 404 数字：渐变流光 + 浮动 */
+    .num {
+      font-size: clamp(96px, 22vw, 160px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 2px;
+      background: linear-gradient(120deg,
+        var(--accent) 0%, var(--accent2) 40%,
+        var(--accent) 70%, var(--accent2) 100%);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: flow 6s linear infinite, bob 3.6s ease-in-out infinite;
+      user-select: none;
+    }
+    @keyframes flow {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+      50%      { transform: translateY(-14px) rotate(1.5deg); }
+    }
+
+    .ghost {
+      display: inline-block;
+      font-size: 34px;
+      margin: 6px 0 18px;
+      animation: ghostWobble 2.6s ease-in-out infinite;
+    }
+    @keyframes ghostWobble {
+      0%, 100% { transform: translateY(0) rotate(-4deg); }
+      50%      { transform: translateY(-9px) rotate(4deg); }
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 26px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .actions a {
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      text-decoration: none;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .actions a:hover { transform: translateY(-2px); }
+    .btn-main {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+    }
+    .btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    /* 底部小字 */
+    .foot {
+      margin-top: 30px;
+      font-size: 12px;
+      color: var(--muted);
+      opacity: .8;
+    }
+    .foot a { color: var(--accent); text-decoration: none; }
+
+    /* 移动端收紧 */
+    @media (max-width: 560px) {
+      .card { padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dots" aria-hidden="true">
+    <i style="left:12%;top:22%;animation-delay:0s"></i>
+    <i style="left:24%;top:68%;animation-delay:1.2s"></i>
+    <i style="left:38%;top:14%;animation-delay:2.1s"></i>
+    <i style="left:52%;top:78%;animation-delay:.6s"></i>
+    <i style="left:66%;top:28%;animation-delay:3s"></i>
+    <i style="left:80%;top:60%;animation-delay:1.8s"></i>
+    <i style="left:90%;top:34%;animation-delay:2.6s"></i>
+  </div>
+
+  <main class="card">
+    <div class="num" aria-label="404">404</div>
+    <div class="ghost">👻</div>
+    <h1>页面走丢了</h1>
+    <p>这里什么都没有，连一只猫都没有。<br>可能是链接写错了，也可能是它被藏到了别处。</p>
+    <div class="actions">
+      <a class="btn-main" href="index.html">返回首页</a>
+      <a class="btn-ghost" href="admin/">去后台看看</a>
+    </div>
+    <div class="foot">由 <a href="https://github.com/jiumooo/Jiumo_Page">Jiumo_Page</a> 驱动 · 托管于 GitHub Pages</div>
+  </main>
+</body>
+</html>

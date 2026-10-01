@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=13">
+  <link rel="stylesheet" href="../assets/css/style.css?v=14">
 </head>
 <body>
 
@@ -124,6 +124,34 @@
             <div class="form-row" style="margin-bottom:0;">
               <label>正文（支持 Markdown）</label>
               <textarea id="editBody" placeholder="在这里开始写作…"></textarea>
+            </div>
+          </div>
+          <!-- 阅读设置：调整编辑器预览的字号/行宽/行距/字体，设置存 localStorage -->
+          <div class="reader-toolbar" id="readerToolbar">
+            <span class="rt-label">预览排版：</span>
+            <div class="rt-group" title="字号档位">
+              <button data-preset="small">小</button>
+              <button data-preset="mid" class="active">中</button>
+              <button data-preset="large">大</button>
+              <button data-preset="xlarge">特大</button>
+            </div>
+            <div class="rt-group" title="微调字号">
+              <button id="rtDec">A−</button>
+              <button id="rtInc">A+</button>
+            </div>
+            <div class="rt-group" title="行宽">
+              <button data-width="narrow">窄</button>
+              <button data-width="standard" class="active">标准</button>
+              <button data-width="wide">宽</button>
+            </div>
+            <div class="rt-group" title="行距">
+              <button data-lh="compact">紧凑</button>
+              <button data-lh="standard" class="active">标准</button>
+              <button data-lh="loose">宽松</button>
+            </div>
+            <div class="rt-group" title="字体">
+              <button data-font="serif">衬线</button>
+              <button data-font="sans" class="active">无衬线</button>
             </div>
           </div>
           <div class="preview-pane post-article hidden" id="editPreview"></div>
@@ -415,16 +443,17 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=13"></script>
-  <script src="../assets/vendor/marked.min.js?v=13"></script>
-  <script src="../assets/js/ui.js?v=13"></script>
+  <script src="../assets/js/config.js?v=14"></script>
+  <script src="../assets/vendor/marked.min.js?v=14"></script>
+  <script src="../assets/js/ui.js?v=14"></script>
+  <script src="../assets/js/reader.js?v=14"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=13"></script>
-  <script src="../modules/weather/module.js?v=13"></script>
-  <script src="../modules/ghchart/module.js?v=13"></script>
-  <script src="../modules/quotes/module.js?v=13"></script>
-  <script src="../modules/stats/module.js?v=13"></script>
-  <script src="../assets/js/admin.js?v=13"></script>
+  <script src="../modules/datetime/module.js?v=14"></script>
+  <script src="../modules/weather/module.js?v=14"></script>
+  <script src="../modules/ghchart/module.js?v=14"></script>
+  <script src="../modules/quotes/module.js?v=14"></script>
+  <script src="../modules/stats/module.js?v=14"></script>
+  <script src="../assets/js/admin.js?v=14"></script>
 </body>
 </html>
 

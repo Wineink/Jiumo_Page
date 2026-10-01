@@ -700,6 +700,25 @@
   });
 
   /* ----------------------------------------------------------
+   * 编辑快捷键：Ctrl+S 保存草稿，Ctrl+Shift+S 保存并发布
+   * 仅在编辑器打开时生效，否则不拦截
+   * -------------------------------------------------------- */
+  document.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || (e.key !== 's' && e.key !== 'S')) {
+      return;
+    }
+    if (editorPanel.classList.contains('hidden')) {
+      return;
+    }
+    e.preventDefault();
+    if (e.shiftKey) {
+      document.getElementById('btnSave').click();
+    } else {
+      document.getElementById('btnSaveDraft').click();
+    }
+  });
+
+  /* ----------------------------------------------------------
    * 设置暂存机制
    * 表单改动即时写入 state.draft / state.repoDraft 并标记 dirty
    * 点「应用所有设置」一次性提交

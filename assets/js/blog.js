@@ -172,6 +172,8 @@
       fixRelativeLinks(article, cfg.postsDir);
       document.title = (meta.title || file) + ' - ' +
         ((SITE_CFG.site && SITE_CFG.site.title) || cfg.siteTitle);
+      /* 通知阅读设置（reader.js）恢复上次阅读位置 */
+      document.dispatchEvent(new CustomEvent('jiumo:postRendered'));
     }).catch(function (err) {
       box.innerHTML = '<div class="state-box error">文章加载失败：' +
         escapeHtml(err.message) + '</div>';

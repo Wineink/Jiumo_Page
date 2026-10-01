@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>酒墨的页面</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=13">
+  <link rel="stylesheet" href="assets/css/style.css?v=14">
 </head>
 <body>
   <header class="site-header">
@@ -40,14 +40,42 @@
       <!-- 中栏：文章列表 -->
       <div class="layout-main">
         <div class="post-list" id="postList">
-          <div class="state-box"><span class="spinner"></span>正在加载文章…</div>
+          <!-- 加载骨架屏：数据拉取完成后由 blog.js 替换为真实文章 -->
+          <div class="skeleton-card">
+            <div class="sk sk-title"></div>
+            <div class="sk sk-meta"></div>
+            <div class="sk sk-line"></div>
+            <div class="sk sk-line short"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="sk sk-title"></div>
+            <div class="sk sk-meta"></div>
+            <div class="sk sk-line"></div>
+            <div class="sk sk-line short"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="sk sk-title"></div>
+            <div class="sk sk-meta"></div>
+            <div class="sk sk-line"></div>
+            <div class="sk sk-line short"></div>
+          </div>
         </div>
       </div>
 
       <!-- 右栏：右侧模块（多模块，可后台配置启用/参数/排序/位置） -->
       <aside class="layout-right">
         <div class="sidebar-panel" id="sidebarPanel">
-          <div class="sidebar-modules" id="sidebarModules"></div>
+          <div class="sidebar-modules" id="sidebarModules">
+            <!-- 加载骨架屏：模块渲染后由 config.js 替换 -->
+            <div class="skeleton-panel">
+              <div class="sk sk-title"></div>
+              <div class="sk sk-line"></div>
+            </div>
+            <div class="skeleton-panel">
+              <div class="sk sk-title"></div>
+              <div class="sk sk-line"></div>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -67,16 +95,16 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="assets/js/config.js?v=13"></script>
-  <script src="assets/vendor/marked.min.js?v=13"></script>
-  <script src="assets/js/ui.js?v=13"></script>
+  <script src="assets/js/config.js?v=14"></script>
+  <script src="assets/vendor/marked.min.js?v=14"></script>
+  <script src="assets/js/ui.js?v=14"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="modules/datetime/module.js?v=13"></script>
-  <script src="modules/weather/module.js?v=13"></script>
-  <script src="modules/ghchart/module.js?v=13"></script>
-  <script src="modules/quotes/module.js?v=13"></script>
-  <script src="modules/stats/module.js?v=13"></script>
-  <script src="assets/js/blog.js?v=13"></script>
+  <script src="modules/datetime/module.js?v=14"></script>
+  <script src="modules/weather/module.js?v=14"></script>
+  <script src="modules/ghchart/module.js?v=14"></script>
+  <script src="modules/quotes/module.js?v=14"></script>
+  <script src="modules/stats/module.js?v=14"></script>
+  <script src="assets/js/blog.js?v=14"></script>
   <!-- 不蒜子浏览量统计（后台可开关） -->
   <script src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>

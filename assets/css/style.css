@@ -597,6 +597,11 @@ html[data-theme="dark"] .badge-draft {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 40px 44px;
+  /* 阅读设置：字号/行距/字体由 reader.js 通过 CSS 变量控制 */
+  font-size: var(--reader-fs, 16px);
+  line-height: var(--reader-lh, 1.8);
+  font-family: var(--reader-font, inherit);
+  transition: font-size .2s ease, line-height .2s ease;
 }
 
 .post-article > h1:first-child {
@@ -652,7 +657,8 @@ html[data-theme="dark"] .badge-draft {
   background: var(--code-bg);
   padding: 0.15em 0.45em;
   border-radius: 5px;
-  font-size: 0.88em;
+  /* 代码块字号联动阅读设置（约为正文字号的 0.9 倍） */
+  font-size: calc(var(--reader-fs, 16px) * 0.9);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   color: #9f1239;
 }
@@ -668,7 +674,8 @@ html[data-theme="dark"] .post-article code {
   border-radius: 8px;
   overflow-x: auto;
   line-height: 1.55;
-  font-size: 14px;
+  /* 代码块字号联动阅读设置 */
+  font-size: calc(var(--reader-fs, 16px) * 0.9);
 }
 
 .post-article pre code {
@@ -1856,6 +1863,60 @@ body:has(.login-shell)::before {
   pointer-events: none;
 }
 
+/* ---- 文章阅读设置工具栏（post.html，reader.js 控制） ---- */
+.reader-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 10px;
+  z-index: 30;
+}
+.rt-group {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.rt-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.rt-group button {
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.rt-group button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.rt-group button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* 行宽三档（前台详情页 postContainer / 后台编辑器预览 editPreview） */
+#postContainer.reader-w-narrow .post-article,
+#editPreview.reader-w-narrow { max-width: 720px; }
+#postContainer.reader-w-standard .post-article,
+#editPreview.reader-w-standard { max-width: 860px; }
+#postContainer.reader-w-wide .post-article,
+#editPreview.reader-w-wide { max-width: none; }
+
 /* 每日一言模块 */
 .quote-text {
   font-size: 14px;
@@ -1881,6 +1942,50 @@ body:has(.login-shell)::before {
 .admin-item .item-words {
   font-size: 12px;
   color: var(--muted);
+}
+
+/* ---- 加载骨架屏（index.html 首页） ---- */
+.skeleton-card,
+.skeleton-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.skeleton-panel {
+  padding: 18px 16px;
+}
+.sk {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--border) 55%, transparent) 25%,
+    color-mix(in srgb, var(--muted) 22%, var(--border)) 50%,
+    color-mix(in srgb, var(--border) 55%, transparent) 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+.sk-title {
+  height: 22px;
+  width: 62%;
+  margin-bottom: 12px;
+}
+.sk-meta {
+  height: 13px;
+  width: 34%;
+  margin-bottom: 16px;
+}
+.sk-line {
+  height: 13px;
+  width: 96%;
+  margin-bottom: 8px;
+}
+.sk-line.short {
+  width: 72%;
+}
+@keyframes sk-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ---- 后台内容区滚动条美化 ---- */
