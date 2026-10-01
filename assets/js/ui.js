@@ -345,7 +345,8 @@
 
   /* ----------------------------------------------------------
    * 鼠标轨迹特效：鼠标移动时带出主色流光粒子拖尾
-   * 后台「动画管理」可开关；触屏设备自动跳过
+   * 后台「动画管理 → 鼠标交互」可开关，并可设置拖尾时长与粒子大小
+   * 触屏设备自动跳过
    * -------------------------------------------------------- */
   function initMouseTrail() {
     if (document.querySelector('.admin-nav')) {
@@ -374,22 +375,31 @@
     var raf = null;
     var alive = true;
 
-    /* 鼠标停止移动 2.5 秒后自动停止绘制（避免空白空转） */
+    /* 拖尾时长配置：short/mid/long 粒子随时间消散；forever 常驻不消散 */
+    var lifeCfg = w.mouseTrailLife || 'long';
+    var forever = lifeCfg === 'forever';
+    var lifeStep = forever ? 0
+      : (lifeCfg === 'short' ? 0.02 : lifeCfg === 'mid' ? 0.012 : 0.007);
+    var MAX_PARTICLES = forever ? 420 : 260;
+    /* 粒子大小：后台可设置基准大小 */
+    var sizeBase = Math.max(1, Math.min(10, parseFloat(w.mouseTrailSize) || 3.5));
+
+    /* 鼠标停止移动 3 秒后自动停止绘制（避免空白空转）；常驻模式保留画面 */
     var stopTimer = null;
     function markMoving() {
       if (stopTimer) {
         clearTimeout(stopTimer);
       }
-      stopTimer = setTimeout(function () { alive = false; }, 2500);
+      stopTimer = setTimeout(function () { alive = false; }, 3000);
     }
 
     window.addEventListener('mousemove', function (e) {
-      if (particles.length > 260) {
+      if (particles.length > MAX_PARTICLES) {
         return;
       }
       alive = true;
       markMoving();
-      /* 每帧生成 4 个粒子：寿命更长、飘散范围更大，形成连续拖尾 */
+      /* 每帧生成 4 个粒子：沿鼠标路径连续排布，形成拖尾 */
       for (var i = 0; i < 4; i++) {
         particles.push({
           x: e.clientX + (Math.random() - 0.5) * 8,
@@ -397,31 +407,45 @@
           vx: (Math.random() - 0.5) * 1.8,
           vy: (Math.random() - 0.5) * 1.8 - 0.45,
           life: 1,
-          size: 2 + Math.random() * 3.5,
-          alpha: 0.5 + Math.random() * 0.4
+          size: sizeBase * (0.55 + Math.random() * 0.8),
+          alpha: 0.55 + Math.random() * 0.35
         });
+      }
+      if (forever && particles.length > MAX_PARTICLES) {
+        particles.splice(0, particles.length - MAX_PARTICLES);
       }
     }, { passive: true });
 
     function tick() {
       if (!alive) {
-        particles = [];
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        /* 常驻模式：停止绘制但保留画面；其他模式清空 */
+        if (!forever) {
+          particles = [];
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        }
         return;
       }
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       particles = particles.filter(function (p) { return p.life > 0; });
+      /* 发光流光效果 */
+      ctx.shadowColor = accent;
+      ctx.shadowBlur = 6;
       particles.forEach(function (p) {
         p.x += p.vx;
         p.y += p.vy;
         p.vy += 0.02;
-        p.life -= 0.007;    /* 约 2.5 秒寿命，拖尾持续明显 */
+        if (forever) {
+          p.life = 1;                     /* 常驻：不消散 */
+        } else {
+          p.life -= lifeStep;
+        }
         ctx.globalAlpha = p.life * p.alpha;
         ctx.fillStyle = accent;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, Math.max(0.4, p.size * p.life), 0, Math.PI * 2);
         ctx.fill();
       });
+      ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
       raf = requestAnimationFrame(tick);
     }

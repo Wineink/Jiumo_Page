@@ -84,6 +84,8 @@ window.DEFAULT_SITE_CONFIG = {
     typingText: ['欢迎来到酒墨的页面', '记录生活与代码'],
     progressBar: true,         /* 顶部阅读进度条 */
     mouseTrail: true,          /* 鼠标轨迹特效 */
+    mouseTrailLife: 'long',    /* 拖尾时长：short 约1秒 / mid 约2秒 / long 约3秒 / forever 持续常驻 */
+    mouseTrailSize: 3.5,       /* 轨迹粒子大小 1-10 */
     festivalTheme: true,       /* 节日主题自动切换 */
     festivalDecoCount: 8,      /* 节日装饰数量 0-20 */
     festivalDecoOpacity: 0.9,  /* 节日装饰透明度 0.1-1 */

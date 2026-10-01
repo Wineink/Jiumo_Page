@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=27">
+  <link rel="stylesheet" href="../assets/css/style.css?v=28">
 </head>
 <body>
 
@@ -427,6 +427,21 @@
           <div class="form-row">
             <label><input type="checkbox" id="cfgWMouseTrail"> 启用鼠标轨迹<span class="hint">鼠标移动时带出主色流光粒子拖尾</span></label>
           </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>拖尾时长</label>
+              <select id="cfgWMouseTrailLife">
+                <option value="short">短（约1秒消散）</option>
+                <option value="mid">中（约2秒消散）</option>
+                <option value="long">长（约3秒消散）</option>
+                <option value="forever">持续（常驻不消散）</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>粒子大小</label>
+              <input type="number" id="cfgWMouseTrailSize" min="1" max="10" step="0.5" value="3.5">
+            </div>
+          </div>
         </div>
         <div class="panel">
           <h2>主题联动</h2>
@@ -477,17 +492,17 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=27"></script>
-  <script src="../assets/vendor/marked.min.js?v=27"></script>
-  <script src="../assets/js/ui.js?v=27"></script>
-  <script src="../assets/js/reader.js?v=27"></script>
+  <script src="../assets/js/config.js?v=28"></script>
+  <script src="../assets/vendor/marked.min.js?v=28"></script>
+  <script src="../assets/js/ui.js?v=28"></script>
+  <script src="../assets/js/reader.js?v=28"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=27"></script>
-  <script src="../modules/weather/module.js?v=27"></script>
-  <script src="../modules/ghchart/module.js?v=27"></script>
-  <script src="../modules/quotes/module.js?v=27"></script>
-  <script src="../modules/stats/module.js?v=27"></script>
-  <script src="../assets/js/admin.js?v=27"></script>
+  <script src="../modules/datetime/module.js?v=28"></script>
+  <script src="../modules/weather/module.js?v=28"></script>
+  <script src="../modules/ghchart/module.js?v=28"></script>
+  <script src="../modules/quotes/module.js?v=28"></script>
+  <script src="../modules/stats/module.js?v=28"></script>
+  <script src="../assets/js/admin.js?v=28"></script>
 </body>
 </html>
 
