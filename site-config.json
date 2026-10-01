@@ -86,12 +86,14 @@
     "busuanzi": false,
     "scrollReveal": true,
     "particles": true,
-    "particlesPreset": "default",
+    "particlesPreset": "snow",
     "typing": true,
     "typingText": [
       "欢迎来到酒墨的页面。"
     ],
     "progressBar": true,
+    "mouseTrail": true,
+    "festivalTheme": true,
     "themeAnim": "ripple",
     "gitalk": {
       "enabled": false,
