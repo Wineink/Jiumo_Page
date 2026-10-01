@@ -65,8 +65,8 @@
         "enabled": true,
         "title": "每日一言",
         "refresh": 10,
-        "author": "酒墨",
-        "position": "right"
+        "author": "",
+        "position": "left"
       }
     ]
   },
