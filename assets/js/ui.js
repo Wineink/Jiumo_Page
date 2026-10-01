@@ -9,28 +9,21 @@
    * -------------------------------------------------------- */
   function initCornerButtons() {
     var btnTop = document.getElementById('btnTop');
+    var btnDark = document.getElementById('btnDark');
+    /* 深浅色按钮在右下角时：与「返回顶部」互斥显示（顶部显示深浅色，下滑显示返回顶部）；
+     * 右上角模式（header 内）保持常驻，不参与滚动显隐 */
+    var w = SITE_CFG.widgets || {};
+    var isBottomRight = !w.darkTogglePos || w.darkTogglePos === 'bottom-right';
     if (btnTop) {
       btnTop.addEventListener('click', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-      /* 滚动超过一屏后显示返回顶部按钮（淡入淡出） */
-      var show = function () {
-        if (window.scrollY > 200) {
-          btnTop.classList.add('show');
-        } else {
-          btnTop.classList.remove('show');
-        }
-      };
-      window.addEventListener('scroll', show, { passive: true });
-      show();
     }
-
-    var btnDark = document.getElementById('btnDark');
     if (btnDark) {
       btnDark.addEventListener('click', function (e) {
         var cur = applyTheme();
         var next = cur === 'dark' ? 'light' : 'dark';
-        var anim = (SITE_CFG.widgets && SITE_CFG.widgets.themeAnim) || 'ripple';
+        var anim = w.themeAnim || 'ripple';
         /* 圆形扩散转场：以点击位置为圆心，从 0 扩散到全屏
          * 实现原理（mask 挖洞）：
          *  1. 页面先整体切换成「目标主题」（真实内容已变成新主题样式）
@@ -78,6 +71,22 @@
         }
       });
     }
+
+    /* 滚动显隐：右下角模式下「返回顶部」与「深浅色」互斥 */
+    var show = function () {
+      if (!btnTop && !btnDark) {
+        return;
+      }
+      var scrolled = window.scrollY > 200;
+      if (btnTop) {
+        btnTop.classList.toggle('show', scrolled);
+      }
+      if (btnDark && isBottomRight) {
+        btnDark.classList.toggle('show', !scrolled);
+      }
+    };
+    window.addEventListener('scroll', show, { passive: true });
+    show();
   }
 
   /* ----------------------------------------------------------
