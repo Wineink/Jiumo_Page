@@ -569,6 +569,111 @@
     switchEditTab('preview');
   });
 
+  /* ----------------------------------------------------------
+   * 编辑器粘贴/拖拽图片：自动上传到仓库 assets/img/ 并插入 markdown
+   * 上传成功后光标位置插入 ![图片](URL)，预览/保存后文章内即可显示
+   * -------------------------------------------------------- */
+  var MAX_IMG_SIZE = 5 * 1024 * 1024;   /* 单张 5MB 上限 */
+
+  function uploadImageFile(file, done) {
+    if (!file || file.type.indexOf('image/') !== 0) {
+      return done(false);
+    }
+    if (file.size > MAX_IMG_SIZE) {
+      showToast('图片超过 5MB，请压缩后再粘贴', 'error');
+      return done(false);
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var base64 = String(reader.result);            /* data:image/png;base64,... */
+      var ext = (file.type.split('/')[1] || 'png').replace('jpeg', 'jpg').toLowerCase();
+      var name = 'img-' + Date.now() + '-' +
+        Math.random().toString(36).slice(2, 7) + '.' + ext;
+      var c = getConfig();
+      var path = 'assets/img/' + name;
+      apiRequest('/repos/' + c.owner + '/' + c.repo +
+        '/contents/' + encodeURIComponent(path), {
+          method: 'PUT',
+          body: JSON.stringify({
+            message: '上传图片 ' + name,
+            content: base64.split(',')[1],
+            branch: c.branch
+          })
+        }).then(function () {
+          /* 图片 URL 用 GitHub Pages 同源地址（owner.github.io/repo/assets/img/xx） */
+          var url = 'https://' + (c.owner || '').toLowerCase() + '.github.io/' +
+            (c.repo || '') + '/assets/img/' + name;
+          done(url);
+        }).catch(function (err) {
+          showToast('图片上传失败：' + err.message, 'error');
+          done(false);
+        });
+    };
+    reader.onerror = function () {
+      showToast('图片读取失败', 'error');
+      done(false);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function insertAtCursor(textarea, text) {
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
+  }
+
+  editBody.addEventListener('paste', function (e) {
+    var items = (e.clipboardData || {}).items;
+    if (!items) {
+      return;
+    }
+    var imgItem = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf('image/') === 0) {
+        imgItem = items[i];
+        break;
+      }
+    }
+    if (!imgItem) {
+      return;
+    }
+    var file = imgItem.getAsFile();
+    if (!file) {
+      return;
+    }
+    e.preventDefault();
+    uploadImageFile(file, function (url) {
+      if (url) {
+        insertAtCursor(editBody, '![图片](' + url + ')\n');
+        showToast('图片已上传并插入文章', 'success');
+      }
+    });
+  });
+
+  editBody.addEventListener('drop', function (e) {
+    var files = (e.dataTransfer || {}).files;
+    if (!files || !files.length) {
+      return;
+    }
+    var imgFiles = Array.prototype.filter.call(files, function (f) {
+      return f.type.indexOf('image/') === 0;
+    });
+    if (!imgFiles.length) {
+      return;
+    }
+    e.preventDefault();
+    imgFiles.forEach(function (file) {
+      uploadImageFile(file, function (url) {
+        if (url) {
+          insertAtCursor(editBody, '![图片](' + url + ')\n');
+          showToast('图片已上传并插入文章', 'success');
+        }
+      });
+    });
+  });
+
   function scheduleDraft() {
     clearTimeout(state.draftTimer);
     state.draftTimer = setTimeout(saveDraft, 1500);
