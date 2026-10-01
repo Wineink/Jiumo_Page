@@ -340,22 +340,44 @@ function listPostFiles() {
   });
 }
 
-/* 读取文章原文：
- * - 浏览器已登录后台（localStorage 有 Token）时优先走 GitHub Contents API，
- *   Accept: application/vnd.github.raw 直接返回原文——API 实时无 CDN 缓存，
- *   发布/撤回后刷新即见最新状态（认证配额 5000 次/小时，足够用）；
- * - 未登录的访客走 raw + 时间戳（不占 API 限额，raw CDN 约 1 分钟内同步）；
- * 任一路径失败自动回退另一条，5 秒超时，保证文章总能读到。 */
+/* 读取文章原文（多源兜底，保证国内网络也能稳定读到）：
+ * 1) 浏览器已登录后台（localStorage 有 Token）时优先走 GitHub Contents API
+ *    ——实时无 CDN 缓存，发布/撤回后刷新即见最新状态（认证配额 5000 次/小时）；
+ * 2) jsDelivr CDN（国内可访问，无限流量）——速度快，内容最多滞后数分钟；
+ * 3) raw.githubusercontent.com——始终最新，但国内访问可能超时；
+ * 4) 匿名 Contents API——兜底（公开仓库匿名配额 60 次/小时）。
+ * 每条路径 5 秒超时，任一路径失败自动回退下一条。 */
 function getPostRaw(filename) {
   var c = getConfig();
   var token = readAdminToken();
+  var chain = Promise.reject(new Error('empty'));
+  var tries = [];
   if (token) {
-    return apiGetRaw(c, filename, token).catch(function () {
-      return rawGetRaw(c, filename);
-    });
+    tries.push(function () { return apiGetRaw(c, filename, token); });
   }
-  return rawGetRaw(c, filename).catch(function () {
-    return apiGetRaw(c, filename, '');
+  tries.push(function () { return cdnGetRaw(c, filename); });
+  tries.push(function () { return rawGetRaw(c, filename); });
+  tries.push(function () { return apiGetRaw(c, filename, ''); });
+  tries.forEach(function (fn) {
+    chain = chain.catch(fn);
+  });
+  return chain;
+}
+
+/* jsDelivr CDN 读取原文（国内可访问）：路径带 @main 分支，内容与仓库同步滞后数分钟 */
+function cdnGetRaw(c, filename) {
+  var cdnUrl = 'https://cdn.jsdelivr.net/gh/' + c.owner + '/' + c.repo +
+    '@' + c.branch + '/' + c.postsDir + '/' + filename;
+  var ctrl = new AbortController();
+  var timer = setTimeout(function () {
+    ctrl.abort();
+  }, 5000);
+  return fetch(cdnUrl, { signal: ctrl.signal }).then(function (res) {
+    clearTimeout(timer);
+    if (!res.ok) {
+      throw new Error('CDN 加载失败：HTTP ' + res.status);
+    }
+    return res.text();
   });
 }
 
@@ -404,11 +426,12 @@ function rawGetRaw(c, filename) {
   });
 }
 
-/* 从后台登录态读取 Token（前后台共用 localStorage 键 jiumo_blog_admin） */
+/* 从后台登录态读取 Token（前后台共用 localStorage 键 jiumo_blog_admin；
+ * v29 起存储为混淆密文，读取时需解密还原） */
 function readAdminToken() {
   try {
     var auth = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-    return auth.token || '';
+    return auth.token ? decryptToken(auth.token) : '';
   } catch (e) {
     return '';
   }
