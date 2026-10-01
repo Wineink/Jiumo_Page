@@ -307,16 +307,25 @@ a:hover {
   color: var(--muted);
 }
 
-/* GitHub 贡献热力图（自绘 SVG，固定高度，各周期大小一致） */
+/* GitHub 贡献热力图（自绘 SVG）
+ * wide 经典横向固定高度；stacked 逐周横排高度随行数自适应、宽度铺满容器 */
 .ghchart-wrap {
   text-align: center;
 }
 
 .ghchart-svg {
   width: 100%;
-  height: 132px;
   display: block;
   margin: 0 auto;
+}
+
+.ghchart-svg.direction-wide {
+  height: 132px;
+}
+
+.ghchart-svg.direction-stacked {
+  height: auto;
+  max-height: 360px;
 }
 
 .ghchart-foot {
@@ -354,6 +363,17 @@ a:hover {
   margin-top: 6px;
   font-size: 12px;
   color: var(--muted);
+}
+
+/* 用户名位于模块标题右侧同一行（模块标题行 flex 布局） */
+.sidebar-module h3 .ghchart-user {
+  margin-top: 0;
+  font-size: 11px;
+  flex-shrink: 0;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 访问统计模块 */

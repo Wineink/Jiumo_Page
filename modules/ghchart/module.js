@@ -12,6 +12,8 @@ window.JiumoModules.ghchart = {
     { key: 'username', label: 'GitHub 用户名', type: 'text' },
     { key: 'period', label: '时间范围', type: 'select',
       options: [['year', '全年'], ['half', '半年'], ['quarter', '三个月'], ['month', '一个月']] },
+    { key: 'direction', label: '排列方向', type: 'select',
+      options: [['stacked', '逐周横排（每行7天）'], ['wide', '经典横向（每周一列）']] },
     { key: 'style', label: '显示样式', type: 'select',
       options: [['classic', '经典绿'], ['dark', '深色'], ['coral', '珊瑚橙'], ['custom', '自定义色']] },
     { key: 'color', label: '自定义主色（选择「自定义色」时生效）', type: 'text' },
@@ -21,10 +23,22 @@ window.JiumoModules.ghchart = {
     var user = (m.username || (window.getConfig ? getConfig().owner : '') || '').trim();
     var wrap = document.createElement('div');
     wrap.className = 'ghchart-wrap';
-    wrap.innerHTML =
-      '<div class="ghchart-loading">正在加载贡献数据…</div>' +
-      '<div class="ghchart-user">@' + escapeHtml(user) + '</div>';
+    wrap.innerHTML = '<div class="ghchart-loading">正在加载贡献数据…</div>';
     el.appendChild(wrap);
+
+    /* 模块标题行：标题在左、用户名在右（同一行，中间自适应留白） */
+    var head = el.parentElement ? el.parentElement.querySelector('h3') : null;
+    if (head) {
+      head.style.display = 'flex';
+      head.style.justifyContent = 'space-between';
+      head.style.alignItems = 'center';
+      head.style.gap = '8px';
+      var us = document.createElement('span');
+      us.className = 'ghchart-user';
+      us.textContent = '@' + (user || '?');
+      head.appendChild(us);
+    }
+
     if (!user) {
       wrap.innerHTML = '<div class="state-box" style="padding:12px 0;">请先在后台填写 GitHub 用户名</div>';
       return;
@@ -42,8 +56,7 @@ window.JiumoModules.ghchart = {
         wrap.innerHTML = '<div class="state-box" style="padding:12px 0;">未获取到贡献数据</div>';
         return;
       }
-      wrap.innerHTML =
-        drawChart(list, m) + '<div class="ghchart-user">@' + escapeHtml(user) + '</div>';
+      wrap.innerHTML = drawChart(list, m);
     }).catch(function () {
       wrap.innerHTML =
         '<div class="state-box" style="padding:12px 0;">贡献图加载失败' +
@@ -129,11 +142,13 @@ function ghLevel(count) {
   return 4;
 }
 
-/* 按日期倒排取最近 N 天，生成周列 × 7 行 SVG */
+/* 按日期倒排取最近 N 天，绘制贡献热力图
+ * direction: stacked 逐周横排（每行7天，自上而下堆叠）/ wide 经典横向（每周一列） */
 function drawChart(list, m) {
   var days = { year: 365, half: 180, quarter: 90, month: 30 }[m.period] || 365;
   var palette = ghChartPalette(m.style, m.color);
   var rounded = m.rounded !== false;
+  var direction = m.direction || 'stacked';
   var byDate = {};
   list.forEach(function (c) {
     if (c && c.date) {
@@ -157,28 +172,47 @@ function drawChart(list, m) {
   }
 
   var cell = 10, gap = 3, w = cell + gap;
-  var cols = Math.ceil(seq.length / 7);
-  var svgW = cols * w + 2;
-  var svgH = 7 * w + 2;
-  var rects = '';
   var weekStart = new Date(seq[0].date);
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  /* 每列顶部补足周日起始（GitHub 风格：列从上到下为周日→周六） */
-  seq.forEach(function (item) {
-    var dow = item.date.getDay();
-    var diff = Math.floor((item.date - weekStart) / 86400000);
-    var col = Math.floor(diff / 7);
-    var row = dow;
-    var x = 1 + col * w;
-    var y = 1 + row * w;
+  var rects = '';
+  var svgW, svgH;
+
+  function rectHtml(item, x, y) {
     var lv = ghLevel(item.count);
     var fill = lv === 0 && m.style === 'dark' ? palette[0] : palette[lv];
     var rx = rounded ? 2 : 0;
-    rects += '<rect x="' + x + '" y="' + y + '" width="' + cell + '" height="' + cell +
+    return '<rect x="' + x + '" y="' + y + '" width="' + cell + '" height="' + cell +
       '" rx="' + rx + '" fill="' + fill + '" data-count="' + item.count +
       '" data-date="' + item.key + '"><title>' + item.key +
       '：' + item.count + ' 次贡献</title></rect>';
-  });
+  }
+
+  if (direction === 'wide') {
+    /* 经典横向：每周一列，列内周日→周六（GitHub 风格） */
+    var cols = Math.ceil(seq.length / 7);
+    svgW = cols * w + 2;
+    svgH = 7 * w + 2;
+    seq.forEach(function (item) {
+      var dow = item.date.getDay();
+      var diff = Math.floor((item.date - weekStart) / 86400000);
+      var col = Math.floor(diff / 7);
+      var row = dow;
+      rects += rectHtml(item, 1 + col * w, 1 + row * w);
+    });
+  } else {
+    /* 逐周横排：每行 7 天（周日起始），行从上到下按时间递增 */
+    var endDate = seq[seq.length - 1].date;
+    var rows = Math.max(1, Math.ceil((endDate - weekStart) / 86400000 / 7));
+    svgW = 7 * w + 2;
+    svgH = rows * w + 2;
+    seq.forEach(function (item) {
+      var dow = item.date.getDay();
+      var diff = Math.floor((item.date - weekStart) / 86400000);
+      var row = Math.floor(diff / 7);
+      var col = dow;
+      rects += rectHtml(item, 1 + col * w, 1 + row * w);
+    });
+  }
 
   var label = { year: '最近一年', half: '最近半年', quarter: '最近三个月', month: '最近一个月' }[m.period] || '最近一年';
   var total = 0;
@@ -189,7 +223,7 @@ function drawChart(list, m) {
     return '<rect x="0" y="0" width="10" height="10" rx="' + (rounded ? 2 : 0) +
       '" fill="' + c + '"></rect>';
   }).join('');
-  return '<svg class="ghchart-svg" viewBox="0 0 ' + svgW + ' ' + svgH +
+  return '<svg class="ghchart-svg direction-' + direction + '" viewBox="0 0 ' + svgW + ' ' + svgH +
     '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">' +
     rects + '</svg>' +
     '<div class="ghchart-foot"><span>' + label + ' · 共 ' + total +
