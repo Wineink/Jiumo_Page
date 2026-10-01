@@ -3,7 +3,7 @@
 **在线页面：** [点击访问](https://jiumooo.github.io/Jiumo_Page/)
 **页面后台：** [点击进入](https://jiumooo.github.io/Jiumo_Page/admin/)
 
-一个**纯静态、零构建、带管理后台**的博客，直接部署在 GitHub Pages 上。
+一个**纯静态、零构建、带管理后台**的页面，直接部署在 GitHub Pages 上。
 
 - 前台：首页文章列表、搜索、文章详情（Markdown 渲染）
 - 后台：访问 `/admin`，用 GitHub Personal Access Token 登录，在线新建 / 编辑 / 删除文章
@@ -14,7 +14,7 @@
 
 ```
 Jiumo_blog/
-├── index.html                # 博客首页
+├── index.html                # 页面首页
 ├── post.html                 # 文章详情页
 ├── site-config.json          # 站点配置（标题/外观/组件开关）
 ├── admin/                    # 管理后台
@@ -93,7 +93,7 @@ https://你的用户名.github.io/Jiumo_Page/
 
 ## 常见自定义
 
-- **博客名称 / 简介**：`assets/js/config.js` 中的 `siteTitle`、`siteDesc`
+- **页面名称 / 简介**：`assets/js/config.js` 中的 `siteTitle`、`siteDesc`
 - **配色**：`assets/css/style.css` 顶部 `:root` 变量（如 `--accent` 强调色）
 - **文章图片**：把图片放进 `posts/images/`，正文用 `![描述](images/文件名.png)` 引用
 
