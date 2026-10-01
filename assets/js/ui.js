@@ -31,44 +31,45 @@
         var cur = applyTheme();
         var next = cur === 'dark' ? 'light' : 'dark';
         var anim = (SITE_CFG.widgets && SITE_CFG.widgets.themeAnim) || 'ripple';
-        /* 圆形扩散动画：以点击位置为圆心，从 0 扩散覆盖全屏
-         * 扩散遮罩呈现「目标主题」的背景色，扩散到哪里哪里就切换成新主题
-         * 扩散完成时同步切换主题底色并移除遮罩 → 边扩散边切换，无缝衔接 */
+        /* 圆形扩散转场：以点击位置为圆心，从 0 扩散到全屏
+         * 实现原理（mask 挖洞）：
+         *  1. 页面先整体切换成「目标主题」（真实内容已变成新主题样式）
+         *  2. 用「旧主题色」的遮罩盖满全屏，视觉上页面仍是旧主题
+         *  3. 遮罩从点击处逐帧挖出圆洞，洞内露出目标主题的真实页面内容
+         *  4. 洞扩散铺满全屏后移除遮罩 → 扩散圈内是真实内容，全程无刷新 */
         if (anim === 'ripple') {
           var x = (e && e.clientX != null) ? e.clientX : window.innerWidth / 2;
           var y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
-          var r = Math.hypot(
-            Math.max(x, window.innerWidth - x),
-            Math.max(y, window.innerHeight - y)
-          );
+          /* 半径计算带兜底：取到视口尺寸的最远距离 */
+          var vw = window.innerWidth || document.documentElement.clientWidth || 1920;
+          var vh = window.innerHeight || document.documentElement.clientHeight || 1080;
+          var r = Math.max(1, Math.round(Math.hypot(
+            Math.max(x, vw - x),
+            Math.max(y, vh - y)
+          )));
           try {
             localStorage.setItem(THEME_KEY, next);
           } catch (err) {}
-          /* 目标主题背景色：临时切到目标主题取值后立刻切回（同一栈内无重绘） */
+          /* 先取旧主题背景色，再整体切换主题（同一栈内，页面无中间重绘） */
+          var oldBg = getComputedStyle(document.documentElement)
+            .getPropertyValue('--bg').trim() ||
+            (cur === 'dark' ? '#12161b' : '#faf9f6');
           applyTheme(next);
-          var bg = getComputedStyle(document.documentElement)
-            .getPropertyValue('--bg').trim();
-          applyTheme(cur);
           var ov = document.createElement('div');
           ov.className = 'theme-ripple';
-          ov.style.clipPath = 'circle(0px at ' + x + 'px ' + y + 'px)';
-          ov.style.background = bg ||
-            (next === 'dark' ? '#12161b' : '#faf9f6');
+          ov.style.background = oldBg;
+          ov.style.setProperty('--mask-x', x + 'px');
+          ov.style.setProperty('--mask-y', y + 'px');
           document.body.appendChild(ov);
-          /* 先播放扩散（此时页面还是旧主题，遮罩新色从点击处扩开） */
-          requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-              ov.style.clipPath = 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)';
-            });
-          });
-          /* 扩散进行中（约 80% 时）切换主题底色：边扩散边切换 */
+          /* 设置目标半径 → CSS transition 驱动挖洞扩散（渲染引擎动画，平滑不卡帧）
+           * 用 setTimeout 而非 rAF：后台/非活动标签页 rAF 会被节流暂停 */
           setTimeout(function () {
-            applyTheme(next);
-          }, 520);
-          /* 扩散完成后移除遮罩：此时页面已是新主题，移除无任何闪烁 */
+            ov.style.setProperty('--mask-r', r + 'px');
+          }, 30);
+          /* 扩散完成后移除遮罩：页面已是新主题，移除无任何闪烁 */
           setTimeout(function () {
             ov.remove();
-          }, 760);
+          }, 720);
         } else {
           try {
             localStorage.setItem(THEME_KEY, next);

@@ -1484,12 +1484,35 @@ body.admin-locked {
 /* ------------------------------------------------------------
  * 主题切换圆形扩散动画
  * ---------------------------------------------------------- */
+/* 主题切换扩散转场：mask 挖洞 + CSS 变量过渡（由渲染引擎驱动，不依赖 JS 帧循环） */
+@property --mask-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --mask-x {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --mask-y {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
 .theme-ripple {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  transition: clip-path 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  --mask-r: 0px;
+  --mask-x: 0px;
+  --mask-y: 0px;
+  -webkit-mask-image: radial-gradient(circle var(--mask-r) at var(--mask-x) var(--mask-y),
+      transparent 0, transparent var(--mask-r), #000 calc(var(--mask-r) + 2px));
+  mask-image: radial-gradient(circle var(--mask-r) at var(--mask-x) var(--mask-y),
+      transparent 0, transparent var(--mask-r), #000 calc(var(--mask-r) + 2px));
+  transition: --mask-r 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 后台设置分类标签（旧版兼容保留） */
