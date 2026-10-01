@@ -960,6 +960,12 @@
     d.widgets.scrollReveal = checked('cfgWScrollReveal');
     d.widgets.particles = checked('cfgWParticles');
     d.widgets.particlesPreset = val('cfgWParticlesPreset');
+    /* 粒子颜色：auto 跟随主题 / custom 取自定义色值 */
+    d.widgets.particlesColor = (val('cfgWParticlesColor') === 'custom')
+      ? (val('cfgWParticlesColorPick') || '#0f766e')
+      : 'auto';
+    d.widgets.particlesCount = Math.max(10, Math.min(150, parseInt(val('cfgWParticlesCount'), 10) || 60));
+    d.widgets.particlesOpacity = Math.max(0.1, Math.min(1, parseFloat(val('cfgWParticlesOpacity')) || 0.65));
     d.widgets.typing = checked('cfgWTyping');
     /* 个人介绍与打字机文案同步：同一个输入框，分号分句 */
     d.widgets.typingText = introVal
@@ -968,6 +974,9 @@
     d.widgets.progressBar = checked('cfgWProgressBar');
     d.widgets.mouseTrail = checked('cfgWMouseTrail');
     d.widgets.festivalTheme = checked('cfgWFestival');
+    d.widgets.festivalDecoCount = Math.max(0, Math.min(20, parseInt(val('cfgWFestivalDecoCount'), 10) || 8));
+    d.widgets.festivalDecoOpacity = Math.max(0.1, Math.min(1, parseFloat(val('cfgWFestivalDecoOpacity')) || 0.9));
+    d.widgets.festivalDecoContent = (val('cfgWFestivalDecoContent') || '').trim();
     d.animation = { speed: val('cfgAnimSpeed') };
     d.sidebar = d.sidebar || {};
     d.sidebar.enabled = checked('cfgSidebarEnabled');
@@ -1012,11 +1021,19 @@
     setVal('cfgWScrollReveal', w.scrollReveal);
     setVal('cfgWParticles', w.particles);
     setVal('cfgWParticlesPreset', w.particlesPreset);
+    var pColor = (w.particlesColor || 'auto');
+    setVal('cfgWParticlesColor', pColor === 'auto' ? 'auto' : 'custom');
+    setVal('cfgWParticlesColorPick', pColor === 'auto' ? '#0f766e' : pColor);
+    setVal('cfgWParticlesCount', w.particlesCount || 60);
+    setVal('cfgWParticlesOpacity', w.particlesOpacity != null ? w.particlesOpacity : 0.65);
     setVal('cfgWTyping', w.typing);
     setVal('cfgWThemeAnim', w.themeAnim || 'ripple');
     setVal('cfgWProgressBar', w.progressBar !== false);
     setVal('cfgWMouseTrail', w.mouseTrail !== false);
     setVal('cfgWFestival', w.festivalTheme !== false);
+    setVal('cfgWFestivalDecoCount', w.festivalDecoCount != null ? w.festivalDecoCount : 8);
+    setVal('cfgWFestivalDecoOpacity', w.festivalDecoOpacity != null ? w.festivalDecoOpacity : 0.9);
+    setVal('cfgWFestivalDecoContent', w.festivalDecoContent || '');
     setVal('cfgAnimSpeed', anim.speed);
     setVal('cfgSidebarEnabled', sb.enabled);
     setVal('cfgSidebarSticky', sb.sticky);
@@ -1093,9 +1110,13 @@
     'cfgSidebarEnabled': '组件模块', 'cfgSidebarSticky': '组件模块',
     'cfgWScrollReveal': '动画管理', 'cfgAnimSpeed': '动画管理',
     'cfgWParticles': '动画管理', 'cfgWParticlesPreset': '动画管理',
+    'cfgWParticlesColor': '动画管理', 'cfgWParticlesColorPick': '动画管理',
+    'cfgWParticlesCount': '动画管理', 'cfgWParticlesOpacity': '动画管理',
     'cfgWTyping': '动画管理', 'cfgWThemeAnim': '动画管理',
     'cfgWProgressBar': '动画管理', 'cfgWMouseTrail': '动画管理',
-    'cfgWFestival': '动画管理'
+    'cfgWFestival': '动画管理',
+    'cfgWFestivalDecoCount': '动画管理', 'cfgWFestivalDecoOpacity': '动画管理',
+    'cfgWFestivalDecoContent': '动画管理'
   };
 
   function bindConfigForms() {

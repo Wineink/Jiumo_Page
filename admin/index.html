@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - Jiumo_Page</title>
-  <link rel="stylesheet" href="../assets/css/style.css?v=20">
+  <link rel="stylesheet" href="../assets/css/style.css?v=21">
 </head>
 <body>
 
@@ -261,25 +261,16 @@
       <!-- 主题 -->
       <div class="view-pane hidden" id="view-theme">
         <div class="panel">
-          <h2>外观主题</h2>
+          <h2>主题模式与配色</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label>主题模式</label>
+              <label>主题模式<span class="hint">浅色 / 深色 / 跟随系统</span></label>
               <select id="cfgTheme">
                 <option value="light">浅色</option>
                 <option value="dark">深色</option>
                 <option value="auto">跟随系统</option>
               </select>
             </div>
-            <div class="form-row">
-              <label>按钮样式</label>
-              <select id="cfgButtonStyle">
-                <option value="rounded">圆角</option>
-                <option value="square">直角</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-grid">
             <div class="form-row">
               <label>浅色主题主色</label>
               <input type="color" id="cfgAccent">
@@ -289,7 +280,17 @@
               <input type="color" id="cfgAccentDark">
             </div>
           </div>
+        </div>
+        <div class="panel">
+          <h2>布局样式</h2>
           <div class="form-grid">
+            <div class="form-row">
+              <label>按钮样式</label>
+              <select id="cfgButtonStyle">
+                <option value="rounded">圆角</option>
+                <option value="square">直角</option>
+              </select>
+            </div>
             <div class="form-row">
               <label>卡片圆角（像素）</label>
               <input type="number" id="cfgRadius" min="0" max="40">
@@ -309,14 +310,14 @@
             <div class="form-row">
               <label><input type="checkbox" id="cfgWDarkToggle"> 深浅色切换按钮</label>
             </div>
-          </div>
-          <div class="form-row">
-            <label>深浅色按钮位置</label>
-            <select id="cfgWDarkPos">
-              <option value="bottom-right">右下角</option>
-              <option value="top-right">右上角</option>
-              <option value="hidden">不显示</option>
-            </select>
+            <div class="form-row">
+              <label>深浅色按钮位置</label>
+              <select id="cfgWDarkPos">
+                <option value="bottom-right">右下角</option>
+                <option value="top-right">右上角</option>
+                <option value="hidden">不显示</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="panel">
@@ -369,10 +370,10 @@
       <!-- 动画管理 -->
       <div class="view-pane hidden" id="view-animation">
         <div class="panel">
-          <h2>滚动入场动画</h2>
+          <h2>页面动效</h2>
           <div class="form-grid">
             <div class="form-row">
-              <label><input type="checkbox" id="cfgWScrollReveal"> 启用滚动入场动画</label>
+              <label><input type="checkbox" id="cfgWScrollReveal"> 启用滚动入场动画<span class="hint">内容进入屏幕时淡入上滑</span></label>
             </div>
             <div class="form-row">
               <label>动画速度</label>
@@ -382,10 +383,16 @@
                 <option value="fast">快</option>
               </select>
             </div>
+            <div class="form-row">
+              <label><input type="checkbox" id="cfgWTyping"> 启用打字机效果<span class="hint">文案在「页面管理 → 个人介绍」中编辑，分号分句</span></label>
+            </div>
+            <div class="form-row">
+              <label><input type="checkbox" id="cfgWProgressBar"> 顶部阅读进度条<span class="hint">页面滚动时顶部细条显示阅读位置</span></label>
+            </div>
           </div>
         </div>
         <div class="panel">
-          <h2>粒子背景</h2>
+          <h2>背景特效</h2>
           <div class="form-grid">
             <div class="form-row">
               <label><input type="checkbox" id="cfgWParticles"> 启用粒子背景</label>
@@ -397,40 +404,55 @@
                 <option value="snow">雪花飘落</option>
               </select>
             </div>
+            <div class="form-row">
+              <label>粒子颜色</label>
+              <select id="cfgWParticlesColor">
+                <option value="auto">自动（跟随主题）</option>
+                <option value="custom">自定义</option>
+              </select>
+              <input type="color" id="cfgWParticlesColorPick" value="#0f766e" style="margin-top:6px;">
+            </div>
+            <div class="form-row">
+              <label>粒子数量</label>
+              <input type="number" id="cfgWParticlesCount" min="10" max="150" value="60">
+            </div>
+            <div class="form-row">
+              <label>粒子透明度</label>
+              <input type="number" id="cfgWParticlesOpacity" min="0.1" max="1" step="0.05" value="0.65">
+            </div>
           </div>
         </div>
         <div class="panel">
-          <h2>打字机效果</h2>
-          <div class="form-row">
-            <label><input type="checkbox" id="cfgWTyping"> 启用打字机<span class="hint">文案在「页面管理 → 个人介绍」中编辑</span></label>
-          </div>
-        </div>
-        <div class="panel">
-          <h2>阅读进度条</h2>
-          <div class="form-row">
-            <label><input type="checkbox" id="cfgWProgressBar"> 顶部显示阅读进度条<span class="hint">页面滚动时顶部细条显示阅读位置</span></label>
-          </div>
-        </div>
-        <div class="panel">
-          <h2>鼠标轨迹特效</h2>
+          <h2>鼠标交互</h2>
           <div class="form-row">
             <label><input type="checkbox" id="cfgWMouseTrail"> 启用鼠标轨迹<span class="hint">鼠标移动时带出主色流光粒子拖尾</span></label>
           </div>
         </div>
         <div class="panel">
-          <h2>节日主题</h2>
-          <div class="form-row">
-            <label><input type="checkbox" id="cfgWFestival"> 节日自动换主题<span class="hint">春节/中秋/国庆/圣诞等当天自动换主色并漂浮装饰</span></label>
-          </div>
-        </div>
-        <div class="panel">
-          <h2>主题切换动画</h2>
-          <div class="form-row">
-            <label>点击深浅色按钮时的过渡效果</label>
-            <select id="cfgWThemeAnim">
-              <option value="ripple">圆形扩散（从点击处扩散到全屏）</option>
-              <option value="none">无动画（直接切换）</option>
-            </select>
+          <h2>主题联动</h2>
+          <div class="form-grid">
+            <div class="form-row">
+              <label><input type="checkbox" id="cfgWFestival"> 节日自动换主题<span class="hint">春节/中秋/国庆/圣诞等当天自动换主色并漂浮装饰</span></label>
+            </div>
+            <div class="form-row">
+              <label>装饰数量</label>
+              <input type="number" id="cfgWFestivalDecoCount" min="0" max="20" value="8">
+            </div>
+            <div class="form-row">
+              <label>装饰透明度</label>
+              <input type="number" id="cfgWFestivalDecoOpacity" min="0.1" max="1" step="0.05" value="0.9">
+            </div>
+            <div class="form-row">
+              <label>自定义装饰内容<span class="hint">多个表情用空格分隔，留空则按节日默认（国庆🎆/春节🏮/圣诞🎄等）</span></label>
+              <input type="text" id="cfgWFestivalDecoContent" placeholder="例如：🎆 🎇 ✨ 🧧">
+            </div>
+            <div class="form-row">
+              <label>主题切换动画</label>
+              <select id="cfgWThemeAnim">
+                <option value="ripple">圆形扩散（从点击处扩散到全屏）</option>
+                <option value="none">无动画（直接切换）</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -455,17 +477,17 @@
     <button class="corner-btn" id="btnDark" title="切换深浅色" aria-label="切换深浅色">☾</button>
   </div>
 
-  <script src="../assets/js/config.js?v=20"></script>
-  <script src="../assets/vendor/marked.min.js?v=20"></script>
-  <script src="../assets/js/ui.js?v=20"></script>
-  <script src="../assets/js/reader.js?v=20"></script>
+  <script src="../assets/js/config.js?v=21"></script>
+  <script src="../assets/vendor/marked.min.js?v=21"></script>
+  <script src="../assets/js/ui.js?v=21"></script>
+  <script src="../assets/js/reader.js?v=21"></script>
   <!-- 侧栏模块（独立文件夹 modules/，注册到 window.JiumoModules） -->
-  <script src="../modules/datetime/module.js?v=20"></script>
-  <script src="../modules/weather/module.js?v=20"></script>
-  <script src="../modules/ghchart/module.js?v=20"></script>
-  <script src="../modules/quotes/module.js?v=20"></script>
-  <script src="../modules/stats/module.js?v=20"></script>
-  <script src="../assets/js/admin.js?v=20"></script>
+  <script src="../modules/datetime/module.js?v=21"></script>
+  <script src="../modules/weather/module.js?v=21"></script>
+  <script src="../modules/ghchart/module.js?v=21"></script>
+  <script src="../modules/quotes/module.js?v=21"></script>
+  <script src="../modules/stats/module.js?v=21"></script>
+  <script src="../assets/js/admin.js?v=21"></script>
 </body>
 </html>
 

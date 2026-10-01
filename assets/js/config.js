@@ -77,11 +77,17 @@ window.DEFAULT_SITE_CONFIG = {
     scrollReveal: true,        /* 滚动入场动画 */
     particles: false,          /* 粒子背景 */
     particlesPreset: 'default',/* default 连线粒子 / snow 雪花 */
+    particlesCount: 60,        /* 粒子数量 10-150 */
+    particlesOpacity: 0.65,    /* 粒子透明度 0.1-1 */
+    particlesColor: 'auto',    /* auto 跟随主题自动配色 / #hex 自定义颜色 */
     typing: false,             /* 打字机效果 */
     typingText: ['欢迎来到酒墨的页面', '记录生活与代码'],
     progressBar: true,         /* 顶部阅读进度条 */
     mouseTrail: true,          /* 鼠标轨迹特效 */
     festivalTheme: true,       /* 节日主题自动切换 */
+    festivalDecoCount: 8,      /* 节日装饰数量 0-20 */
+    festivalDecoOpacity: 0.9,  /* 节日装饰透明度 0.1-1 */
+    festivalDecoContent: '',   /* 自定义节日装饰内容（多个表情空格分隔，留空用默认） */
     themeAnim: 'ripple'        /* 主题切换动画：ripple 点击处圆形扩散 / none 无动画 */
   },
   animation: {

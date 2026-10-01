@@ -128,7 +128,7 @@
   /* ----------------------------------------------------------
    * 粒子背景（原生 Canvas 自绘，不依赖任何 CDN）
    * 两种预设：default 连线粒子 / snow 雪花飘落
-   * 后台「动画管理」可开关
+   * 后台「动画管理」可开关，并可自定义数量/透明度/颜色
    * -------------------------------------------------------- */
   function initParticles() {
     if (document.querySelector('.admin-nav')) {
@@ -155,7 +155,14 @@
     var isSnow = w.particlesPreset === 'snow';
     var accent = getComputedStyle(document.documentElement)
       .getPropertyValue('--accent').trim() || '#0f766e';
-    var N = isSnow ? 70 : 48;
+    var dark = document.documentElement.classList.contains('dark');
+    /* 粒子颜色：自定义优先；auto 时浅色主题跟随主色、深色主题雪花用白色 */
+    var cfgColor = (w.particlesColor || '').trim();
+    var pColor = (cfgColor && cfgColor !== 'auto')
+      ? cfgColor
+      : (isSnow ? (dark ? '#ffffff' : accent) : accent);
+    var baseOpacity = Math.max(0.1, Math.min(1, parseFloat(w.particlesOpacity) || 0.65));
+    var N = Math.max(10, Math.min(150, parseInt(w.particlesCount, 10) || (isSnow ? 70 : 48)));
     var pts = [];
     for (var i = 0; i < N; i++) {
       pts.push({
@@ -181,12 +188,12 @@
         if (p.y > wh + 10) { p.y = -10; }
         if (isSnow) {
           /* 雪花：白色半透明，左右轻微摆动 */
-          ctx.globalAlpha = 0.55 + Math.sin(p.tw) * 0.2;
-          ctx.fillStyle = '#ffffff';
+          ctx.globalAlpha = baseOpacity + Math.sin(p.tw) * 0.15;
+          ctx.fillStyle = pColor;
         } else {
           /* 连线粒子：主色，轻微呼吸透明度 */
-          ctx.globalAlpha = 0.35 + Math.sin(p.tw) * 0.12;
-          ctx.fillStyle = accent;
+          ctx.globalAlpha = baseOpacity + Math.sin(p.tw) * 0.12;
+          ctx.fillStyle = pColor;
         }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -202,8 +209,8 @@
             dy = pts[i].y - pts[j].y;
             d2 = dx * dx + dy * dy;
             if (d2 < 16900) {           /* 130px 内连线 */
-              ctx.globalAlpha = 0.24 * (1 - Math.sqrt(d2) / 130);
-              ctx.strokeStyle = accent;
+              ctx.globalAlpha = baseOpacity * 0.4 * (1 - Math.sqrt(d2) / 130);
+              ctx.strokeStyle = pColor;
               ctx.beginPath();
               ctx.moveTo(pts[i].x, pts[i].y);
               ctx.lineTo(pts[j].x, pts[j].y);
@@ -444,13 +451,21 @@
     /* 节日主色覆盖站点主题色（仅当天生效） */
     document.documentElement.style.setProperty('--accent', hit.accent);
 
-    /* 顶部漂浮装饰（随机位置，不跟随滚动） */
+    /* 顶部漂浮装饰（随机位置，不跟随滚动）；数量/透明度/内容可后台自定义 */
     if (document.querySelector('.fest-deco')) {
       return;
     }
-    var decos = hit.deco;
-    var count = 8;
-    var chars = decos.split(' ');
+    var count = Math.max(0, Math.min(20, parseInt(w.festivalDecoCount, 10) || 8));
+    if (count < 1) {
+      return;
+    }
+    var decoOpacity = Math.max(0.1, Math.min(1, parseFloat(w.festivalDecoOpacity) || 0.9));
+    var customDeco = (w.festivalDecoContent || '').trim();
+    var decos = customDeco || hit.deco;
+    var chars = decos.split(/\s+/).filter(Boolean);
+    if (!chars.length) {
+      chars = [hit.deco];
+    }
     for (var k = 0; k < count; k++) {
       var el = document.createElement('span');
       el.className = 'fest-deco';
@@ -458,6 +473,7 @@
       el.style.left = (2 + Math.random() * 92) + '%';
       el.style.top = (6 + Math.random() * 80) + '%';
       el.style.fontSize = (20 + Math.random() * 22) + 'px';
+      el.style.opacity = String(decoOpacity);
       el.style.animationDelay = (Math.random() * 4) + 's';
       el.style.animationDuration = (5 + Math.random() * 4) + 's';
       document.body.appendChild(el);
