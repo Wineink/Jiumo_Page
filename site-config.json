@@ -1,13 +1,15 @@
 {
   "site": {
     "title": "酒墨的页面Demo",
-    "desc": "一个托管在 GitHub Pages 上的静态页面，有后台管理写作发布等。"
+    "desc": "一个托管在 GitHub Pages 上的静态页面，有后台管理写作发布等。",
+    "descTyping": true,
+    "descTypingSpeed": 80
   },
   "profile": {
     "showAvatar": true,
     "avatar": "https://avatars.githubusercontent.com/u/51371607?s=400&u=0b4ad4295b7ba05f403c1e1819bfda2a0a17417c&v=4",
     "avatarShape": "circle",
-    "intro": "欢迎来到酒墨的页面。",
+    "intro": "",
     "introTyping": true,
     "introTypingSpeed": 80
   },
@@ -95,9 +97,7 @@
     "particlesOpacity": 0.4,
     "particlesColor": "auto",
     "typing": false,
-    "typingText": [
-      "欢迎来到酒墨的页面。"
-    ],
+    "typingText": [],
     "progressBar": true,
     "mouseTrail": true,
     "mouseTrailLife": "forever",
