@@ -46,7 +46,7 @@
       },
       {
         "id": "stats",
-        "enabled": true,
+        "enabled": false,
         "title": "访问统计",
         "showPv": true,
         "showUv": true,
