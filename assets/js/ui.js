@@ -61,11 +61,14 @@
               ov.style.clipPath = 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)';
             });
           });
-          /* 扩散完成：切换主题底色并移除遮罩，同帧完成无闪烁 */
+          /* 扩散进行中（约 80% 时）切换主题底色：边扩散边切换 */
           setTimeout(function () {
             applyTheme(next);
+          }, 520);
+          /* 扩散完成后移除遮罩：此时页面已是新主题，移除无任何闪烁 */
+          setTimeout(function () {
             ov.remove();
-          }, 680);
+          }, 760);
         } else {
           try {
             localStorage.setItem(THEME_KEY, next);
