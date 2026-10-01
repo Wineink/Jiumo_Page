@@ -7,7 +7,9 @@
     "showAvatar": true,
     "avatar": "https://avatars.githubusercontent.com/u/51371607?s=400&u=0b4ad4295b7ba05f403c1e1819bfda2a0a17417c&v=4",
     "avatarShape": "circle",
-    "intro": "欢迎来到酒墨的页面。"
+    "intro": "欢迎来到酒墨的页面。",
+    "introTyping": true,
+    "introTypingSpeed": 80
   },
   "layout": {
     "showSearch": true,
@@ -92,7 +94,7 @@
     "particlesCount": 35,
     "particlesOpacity": 0.4,
     "particlesColor": "auto",
-    "typing": true,
+    "typing": false,
     "typingText": [
       "欢迎来到酒墨的页面。"
     ],
