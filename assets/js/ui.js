@@ -170,9 +170,38 @@
         y: Math.random() * window.innerHeight,
         vx: (Math.random() - 0.5) * 0.5,
         vy: isSnow ? (0.5 + Math.random() * 1.1) : (Math.random() - 0.5) * 0.35,
-        r: isSnow ? (1 + Math.random() * 2.2) : (1.1 + Math.random() * 1.7),
-        tw: Math.random() * Math.PI * 2
+        r: isSnow ? (2.5 + Math.random() * 3) : (1.1 + Math.random() * 1.7),
+        tw: Math.random() * Math.PI * 2,
+        rot: Math.random() * Math.PI * 2,       /* 雪花初始旋转角 */
+        rotV: (Math.random() - 0.5) * 0.05      /* 雪花旋转速度 */
       });
+    }
+
+    /* 绘制六角雪花：六条臂 + 臂上小分支，缓慢旋转 */
+    function drawFlake(x, y, r, rot, alpha) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = pColor;
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
+      var i;
+      for (i = 0; i < 6; i++) {
+        ctx.rotate(Math.PI / 3);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -r);
+        ctx.stroke();
+        /* 臂上的小分支 */
+        ctx.beginPath();
+        ctx.moveTo(0, -r * 0.55);
+        ctx.lineTo(r * 0.28, -r * 0.82);
+        ctx.moveTo(0, -r * 0.55);
+        ctx.lineTo(-r * 0.28, -r * 0.82);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     function tick() {
@@ -187,14 +216,14 @@
         if (p.y < -10) { p.y = wh + 10; }
         if (p.y > wh + 10) { p.y = -10; }
         if (isSnow) {
-          /* 雪花：白色半透明，左右轻微摆动 */
-          ctx.globalAlpha = baseOpacity + Math.sin(p.tw) * 0.15;
-          ctx.fillStyle = pColor;
-        } else {
-          /* 连线粒子：主色，轻微呼吸透明度 */
-          ctx.globalAlpha = baseOpacity + Math.sin(p.tw) * 0.12;
-          ctx.fillStyle = pColor;
+          /* 雪花：六角雪花形状，缓慢旋转飘落 */
+          p.rot += p.rotV;
+          drawFlake(p.x, p.y, p.r, p.rot, baseOpacity + Math.sin(p.tw) * 0.15);
+          return;
         }
+        /* 连线粒子：主色，轻微呼吸透明度 */
+        ctx.globalAlpha = baseOpacity + Math.sin(p.tw) * 0.12;
+        ctx.fillStyle = pColor;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
