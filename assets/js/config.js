@@ -211,6 +211,11 @@ function getConfig() {
       cfg.repo = (saved.repo === 'Jiumo_blog' || !saved.repo) ? cfg.repo : saved.repo;
       cfg.branch = saved.branch || cfg.branch;
       cfg.token = saved.token ? decryptToken(saved.token) : '';
+      /* 自动迁移：发现仍为明文的旧 Token，立即加密后覆盖存储，无需用户操作 */
+      if (saved.token && saved.token.indexOf('enc:') !== 0 && cfg.token) {
+        saved.token = encryptToken(cfg.token);
+        localStorage.setItem(STORE_KEY, JSON.stringify(saved));
+      }
     }
   } catch (e) {}
   return cfg;
