@@ -64,7 +64,7 @@
         "id": "quotes",
         "enabled": true,
         "title": "每日一言",
-        "refresh": 10,
+        "refresh": 20,
         "author": "",
         "position": "left"
       }
@@ -96,6 +96,8 @@
     ],
     "progressBar": true,
     "mouseTrail": true,
+    "mouseTrailLife": "forever",
+    "mouseTrailSize": 1.1,
     "festivalTheme": true,
     "festivalDecoCount": 10,
     "festivalDecoOpacity": 0.4,
