@@ -266,6 +266,161 @@
   }
 
   /* ----------------------------------------------------------
+   * 鼠标轨迹特效：鼠标移动时带出主色流光粒子拖尾
+   * 后台「动画管理」可开关；触屏设备自动跳过
+   * -------------------------------------------------------- */
+  function initMouseTrail() {
+    if (document.querySelector('.admin-nav')) {
+      return;
+    }
+    var w = SITE_CFG.widgets || {};
+    if (!w.mouseTrail || !window.matchMedia('(pointer: fine)').matches) {
+      return;
+    }
+    var cv = document.createElement('canvas');
+    cv.id = 'mouseTrail';
+    document.body.appendChild(cv);
+    var ctx = cv.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    function resize() {
+      cv.width = Math.round(window.innerWidth * dpr);
+      cv.height = Math.round(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent').trim() || '#0f766e';
+    var particles = [];
+    var raf = null;
+    var alive = true;
+
+    window.addEventListener('mousemove', function (e) {
+      if (!alive || particles.length > 220) {
+        return;
+      }
+      for (var i = 0; i < 3; i++) {
+        particles.push({
+          x: e.clientX + (Math.random() - 0.5) * 5,
+          y: e.clientY + (Math.random() - 0.5) * 5,
+          vx: (Math.random() - 0.5) * 1.1,
+          vy: (Math.random() - 0.5) * 1.1 - 0.35,
+          life: 1,
+          size: 1.6 + Math.random() * 2.8,
+          alpha: 0.55 + Math.random() * 0.4
+        });
+      }
+    }, { passive: true });
+
+    function tick() {
+      if (!alive) {
+        return;
+      }
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      particles = particles.filter(function (p) { return p.life > 0; });
+      particles.forEach(function (p) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.015;
+        p.life -= 0.018;
+        ctx.globalAlpha = p.life * p.alpha;
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  /* ----------------------------------------------------------
+   * 节日主题自动切换：当天是节日时自动换主色调 + 顶部漂浮装饰
+   * 后台「动画管理」可开关；平时不打扰
+   * -------------------------------------------------------- */
+  function initFestivalTheme() {
+    if (document.querySelector('.admin-nav')) {
+      return;
+    }
+    var w = SITE_CFG.widgets || {};
+    if (w.festivalTheme === false) {
+      return;
+    }
+    var now = new Date();
+    var y = now.getFullYear();
+    var md = pad2(now.getMonth() + 1) + '-' + pad2(now.getDate());
+    function pad2(n) { return n < 10 ? '0' + n : String(n); }
+    function inRange(from, to) { return md >= from && md <= to; }
+    /* 日期字符串（MM-DD）偏移 N 天，跨月时用日期对象换算 */
+    function shiftMd(base, n) {
+      var ym = 2000, mm = parseInt(base.slice(0, 2), 10) - 1, dd = parseInt(base.slice(2), 10);
+      var d = new Date(ym, mm, dd + n);
+      return pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    }
+
+    /* 农历节日用年份映射表（公历日期），其余按公历区间 */
+    var FESTIVALS = [
+      { name: '国庆', deco: '🎆', accent: '#dc2626',
+        test: function () { return inRange('10-01', '10-07'); } },
+      { name: '中秋', deco: '🌕', accent: '#8b5cf6',
+        dates: { 2025: '10-06', 2026: '09-25', 2027: '09-15', 2028: '10-03', 2029: '09-22', 2030: '09-12', 2031: '10-01', 2032: '09-19' }, span: 3 },
+      { name: '元旦', deco: '🎆', accent: '#ef4444',
+        test: function () { return inRange('12-30', '01-03'); } },
+      { name: '春节', deco: '🏮', accent: '#dc2626',
+        dates: { 2025: '01-29', 2026: '02-17', 2027: '02-06', 2028: '01-26', 2029: '02-13', 2030: '02-03', 2031: '01-23', 2032: '02-11' }, span: 3 },
+      { name: '元宵', deco: '🏮', accent: '#f59e0b',
+        dates: { 2025: '02-12', 2026: '03-04', 2027: '02-20', 2028: '02-09', 2029: '02-28', 2030: '02-17', 2031: '02-05', 2032: '02-24' }, span: 2 },
+      { name: '情人节', deco: '💗', accent: '#ec4899',
+        test: function () { return inRange('02-13', '02-15'); } },
+      { name: '圣诞', deco: '🎄', accent: '#16a34a',
+        test: function () { return inRange('12-20', '12-27'); } },
+      { name: '万圣节', deco: '🎃', accent: '#ea580c',
+        test: function () { return inRange('10-30', '11-01'); } }
+    ];
+
+    var hit = null;
+    for (var i = 0; i < FESTIVALS.length; i++) {
+      var f = FESTIVALS[i];
+      if (f.test) {
+        if (f.test()) { hit = f; break; }
+      } else {
+        var base = f.dates && f.dates[y];
+        if (base) {
+          var from = shiftMd(base, -f.span);
+          var to = shiftMd(base, f.span);
+          if (md >= from && md <= to) { hit = f; break; }
+        }
+      }
+    }
+    if (!hit) {
+      return;
+    }
+    /* 节日主色覆盖站点主题色（仅当天生效） */
+    document.documentElement.style.setProperty('--accent', hit.accent);
+
+    /* 顶部漂浮装饰（随机位置，不跟随滚动） */
+    if (document.querySelector('.fest-deco')) {
+      return;
+    }
+    var decos = hit.deco;
+    var count = 8;
+    var chars = decos.split(' ');
+    for (var k = 0; k < count; k++) {
+      var el = document.createElement('span');
+      el.className = 'fest-deco';
+      el.textContent = chars[k % chars.length];
+      el.style.left = (2 + Math.random() * 92) + '%';
+      el.style.top = (6 + Math.random() * 80) + '%';
+      el.style.fontSize = (20 + Math.random() * 22) + 'px';
+      el.style.animationDelay = (Math.random() * 4) + 's';
+      el.style.animationDuration = (5 + Math.random() * 4) + 's';
+      document.body.appendChild(el);
+    }
+  }
+
+  /* ----------------------------------------------------------
    * 统一入口：页面加载完 site-config 后调用
    * -------------------------------------------------------- */
   window.initJiumoUI = function () {
@@ -274,5 +429,7 @@
     initParticles();
     initTyping();
     initProgressBar();
+    initMouseTrail();
+    initFestivalTheme();
   };
 })();

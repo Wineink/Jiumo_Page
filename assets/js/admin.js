@@ -966,6 +966,8 @@
       .split(';').map(function (t) { return t.trim(); }).filter(Boolean);
     d.widgets.themeAnim = val('cfgWThemeAnim');
     d.widgets.progressBar = checked('cfgWProgressBar');
+    d.widgets.mouseTrail = checked('cfgWMouseTrail');
+    d.widgets.festivalTheme = checked('cfgWFestival');
     d.animation = { speed: val('cfgAnimSpeed') };
     d.sidebar = d.sidebar || {};
     d.sidebar.enabled = checked('cfgSidebarEnabled');
@@ -1013,6 +1015,8 @@
     setVal('cfgWTyping', w.typing);
     setVal('cfgWThemeAnim', w.themeAnim || 'ripple');
     setVal('cfgWProgressBar', w.progressBar !== false);
+    setVal('cfgWMouseTrail', w.mouseTrail !== false);
+    setVal('cfgWFestival', w.festivalTheme !== false);
     setVal('cfgAnimSpeed', anim.speed);
     setVal('cfgSidebarEnabled', sb.enabled);
     setVal('cfgSidebarSticky', sb.sticky);
@@ -1090,7 +1094,8 @@
     'cfgWScrollReveal': '动画管理', 'cfgAnimSpeed': '动画管理',
     'cfgWParticles': '动画管理', 'cfgWParticlesPreset': '动画管理',
     'cfgWTyping': '动画管理', 'cfgWThemeAnim': '动画管理',
-    'cfgWProgressBar': '动画管理'
+    'cfgWProgressBar': '动画管理', 'cfgWMouseTrail': '动画管理',
+    'cfgWFestival': '动画管理'
   };
 
   function bindConfigForms() {

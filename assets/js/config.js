@@ -80,6 +80,8 @@ window.DEFAULT_SITE_CONFIG = {
     typing: false,             /* 打字机效果 */
     typingText: ['欢迎来到酒墨的页面', '记录生活与代码'],
     progressBar: true,         /* 顶部阅读进度条 */
+    mouseTrail: true,          /* 鼠标轨迹特效 */
+    festivalTheme: true,       /* 节日主题自动切换 */
     themeAnim: 'ripple'        /* 主题切换动画：ripple 点击处圆形扩散 / none 无动画 */
   },
   animation: {

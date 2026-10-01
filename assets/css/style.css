@@ -1944,8 +1944,29 @@ body:has(.login-shell)::before {
   color: var(--muted);
 }
 
-/* ---- 加载骨架屏（index.html 首页） ---- */
-.skeleton-card,
+/* 鼠标轨迹特效画布（ui.js 动态创建，置于内容之上、按钮之下） */
+#mouseTrail {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+/* 节日主题漂浮装饰（ui.js 节日检测生成） */
+.fest-deco {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  opacity: .75;
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent));
+  animation: fest-float 6s ease-in-out infinite;
+}
+@keyframes fest-float {
+  0%, 100% { transform: translateY(0) rotate(-7deg); }
+  50%      { transform: translateY(-16px) rotate(7deg); }
+}
+
+/* ---- 加载骨架屏（index.html 首页） ---- */.skeleton-card,
 .skeleton-panel {
   background: var(--surface);
   border: 1px solid var(--border);
