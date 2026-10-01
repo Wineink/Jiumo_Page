@@ -855,7 +855,8 @@ body.admin-locked {
   margin-left: 230px;
   height: 100vh;
   overflow-y: auto;
-  padding: 20px 28px 80px;
+  /* 顶部让出固定顶栏的高度 */
+  padding: 102px 28px 80px;
   /* 禁用浏览器滚动锚定：渲染模块卡片时不会自动调整滚动位置 */
   overflow-anchor: none;
 }
@@ -870,12 +871,15 @@ body.admin-locked {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 0 14px;
+  padding: 18px 4px 14px;
   margin-bottom: 14px;
   flex-wrap: wrap;
-  position: sticky;
+  /* 固定顶栏：固定在视口最顶部，左右宽度自适应（避开左侧导航） */
+  position: fixed;
   top: 0;
-  z-index: 30;
+  left: 230px;
+  right: 0;
+  z-index: 40;
   background: var(--bg);
   /* 无边框无线条：顶栏与下方内容无缝衔接 */
   border-bottom: none;
@@ -1679,7 +1683,15 @@ body.admin-locked {
 
   .admin-content {
     margin-left: 0;
-    padding: 76px 16px 80px;
+    /* 顶部让出固定顶栏 + 顶部导航横条的高度 */
+    padding: 176px 16px 80px;
+  }
+
+  .admin-topbar {
+    left: 0;
+    top: 57px;
+    right: 0;
+    padding: 14px 12px 12px;
   }
 }
 
