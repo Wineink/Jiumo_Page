@@ -296,25 +296,39 @@
     var raf = null;
     var alive = true;
 
+    /* 鼠标停止移动 2.5 秒后自动停止绘制（避免空白空转） */
+    var stopTimer = null;
+    function markMoving() {
+      if (stopTimer) {
+        clearTimeout(stopTimer);
+      }
+      stopTimer = setTimeout(function () { alive = false; }, 2500);
+    }
+
     window.addEventListener('mousemove', function (e) {
-      if (!alive || particles.length > 220) {
+      if (particles.length > 260) {
         return;
       }
-      for (var i = 0; i < 3; i++) {
+      alive = true;
+      markMoving();
+      /* 每帧生成 4 个粒子：寿命更长、飘散范围更大，形成连续拖尾 */
+      for (var i = 0; i < 4; i++) {
         particles.push({
-          x: e.clientX + (Math.random() - 0.5) * 5,
-          y: e.clientY + (Math.random() - 0.5) * 5,
-          vx: (Math.random() - 0.5) * 1.1,
-          vy: (Math.random() - 0.5) * 1.1 - 0.35,
+          x: e.clientX + (Math.random() - 0.5) * 8,
+          y: e.clientY + (Math.random() - 0.5) * 8,
+          vx: (Math.random() - 0.5) * 1.8,
+          vy: (Math.random() - 0.5) * 1.8 - 0.45,
           life: 1,
-          size: 1.6 + Math.random() * 2.8,
-          alpha: 0.55 + Math.random() * 0.4
+          size: 2 + Math.random() * 3.5,
+          alpha: 0.5 + Math.random() * 0.4
         });
       }
     }, { passive: true });
 
     function tick() {
       if (!alive) {
+        particles = [];
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
         return;
       }
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -322,8 +336,8 @@
       particles.forEach(function (p) {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.015;
-        p.life -= 0.018;
+        p.vy += 0.02;
+        p.life -= 0.007;    /* 约 2.5 秒寿命，拖尾持续明显 */
         ctx.globalAlpha = p.life * p.alpha;
         ctx.fillStyle = accent;
         ctx.beginPath();
