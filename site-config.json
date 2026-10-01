@@ -21,13 +21,6 @@
     "sticky": true,
     "modules": [
       {
-        "id": "about",
-        "enabled": false,
-        "title": "关于本站",
-        "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「组件模块」中修改，支持 Markdown。",
-        "position": "left"
-      },
-      {
         "id": "datetime",
         "enabled": true,
         "title": "日期时间",
@@ -47,14 +40,6 @@
         "position": "right"
       },
       {
-        "id": "stats",
-        "enabled": false,
-        "title": "访问统计",
-        "showPv": true,
-        "showUv": true,
-        "position": "right"
-      },
-      {
         "id": "ghchart",
         "enabled": true,
         "title": "GitHub 贡献",
@@ -71,6 +56,21 @@
         "position": "left",
         "typewriter": true,
         "typeSpeed": 150
+      },
+      {
+        "id": "stats",
+        "enabled": false,
+        "title": "访问统计",
+        "showPv": true,
+        "showUv": true,
+        "position": "right"
+      },
+      {
+        "id": "about",
+        "enabled": false,
+        "title": "关于本站",
+        "content": "这里可以放公告、简介、友情链接等内容。\n\n> 在后台「组件模块」中修改，支持 Markdown。",
+        "position": "left"
       }
     ]
   },
