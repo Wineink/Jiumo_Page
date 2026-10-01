@@ -59,6 +59,14 @@
         "username": "jiumooo",
         "position": "left",
         "period": "quarter"
+      },
+      {
+        "id": "quotes",
+        "enabled": true,
+        "title": "每日一言",
+        "refresh": 10,
+        "author": "酒墨",
+        "position": "right"
       }
     ]
   },
@@ -83,6 +91,7 @@
     "typingText": [
       "欢迎来到酒墨的页面。"
     ],
+    "progressBar": true,
     "themeAnim": "ripple",
     "gitalk": {
       "enabled": false,
