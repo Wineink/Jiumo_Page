@@ -14,24 +14,28 @@
 
 ```
 Jiumo_blog/
-├── index.html                # 博客首页
+├── 404.html                  # 自定义 404 页面
+├── index.html                # 页面首页
 ├── post.html                 # 文章详情页
 ├── site-config.json          # 站点配置（标题/外观/组件开关）
 ├── admin/                    # 管理后台
 │   └── index.html            # 管理后台
 ├── assets/                   # 站点资源
 │   ├── css/style.css         # 全局样式
+│   ├── img/                  # 图片资源（文章配图等）
 │   ├── js/config.js          # 站点配置 + GitHub API 封装（改这里）
 │   ├── js/blog.js            # 前台逻辑
+│   ├── js/reader.js          # 文章阅读设置（字号/行宽/字体）
 │   ├── js/ui.js              # 前端交互（返回顶部/主题切换/粒子等）
 │   ├── js/admin.js           # 后台逻辑
 │   └── vendor/marked.min.js  # Markdown 渲染库（本地内置）
 ├── modules/                  # 侧栏功能模块
 │   ├── README.md             # 模块开发指南
 │   ├── datetime/module.js    # 日期时间模块
-│   ├── weather/module.js     # 天气模块
 │   ├── ghchart/module.js     # GitHub 贡献热力图
-│   └── stats/module.js       # 访问统计
+│   ├── quotes/module.js      # 每日一言
+│   ├── stats/module.js       # 访问统计
+│   └── weather/module.js     # 天气模块
 ├── posts/                    # 文章目录（Markdown 文件）
 └── .nojekyll                 # 禁用 GitHub Pages 的 Jekyll 处理
 ```
