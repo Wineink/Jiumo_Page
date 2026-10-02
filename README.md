@@ -14,7 +14,7 @@
 
 ```
 Jiumo_blog/
-├── index.html                # 页面首页
+├── index.html                # 博客首页
 ├── post.html                 # 文章详情页
 ├── site-config.json          # 站点配置（标题/外观/组件开关）
 ├── admin/                    # 管理后台
